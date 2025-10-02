@@ -2856,7 +2856,189 @@ so use 01-clippy
 
 _**Assistant (claude-4.5-sonnet-thinking)**_
 
+<think><details><summary>Thought Process</summary>The user wants to update the classroom names to use the room name from the URL instead of generic names like "Cohort Alpha", "Cohort Beta", etc. They want to extract the final portion of the Daily.co URL (e.g., "01-clippy" from "https://overclockaccelerator.daily.co/01-clippy") and use that as the classroom name.
 
+I need to:
+1. Check the constants file to see where the classroom names are defined
+2. Update the logic to extract the room name from the URL instead of using hardcoded names
+
+Let me look at the constants and daily-config files.</details></think>
+
+---
+
+I'll update the classroom names to dynamically extract them from the Daily room URLs. Let me check the current setup:
+
+---
+
+Tool use: **read_file**
+
+Read file: lib/constants.ts
+
+---
+
+<think><details><summary>Thought Process</summary>I need to update the daily-config.ts to extract the room name from the URL dynamically instead of using the hardcoded CLASSROOM_NAMES. I'll create a helper function that extracts the last part of the URL and uses that as the name.</details></think>
+
+---
+
+Now let me update the `daily-config.ts` to extract room names from the URLs:
+
+---
+
+Tool use: **search_replace**
+
+
+<details><summary>Edit file: lib/daily-config.ts</summary>
+
+**Chunk 1**
+Lines added: 33, lines removed: 13
+
+```diff
+@@ -2,45 +2,65 @@
+  // Manages the 6 pre-defined Daily room URLs for local development
+  
+- import { CLASSROOM_NAMES } from './constants';
++ /**
++  * Extract room name from Daily.co URL
++  * WHY: Use the actual room name from the URL (e.g., "01-clippy") instead of generic names
++  * This makes it easier to identify rooms and matches the Daily.co dashboard
++  */
++ function extractRoomName(url: string): string {
++   try {
++     const parts = url.split('/');
++     const roomName = parts[parts.length - 1];
++     return roomName || 'Unknown Room';
++   } catch {
++     return 'Unknown Room';
++   }
++ }
+  
+  // Daily room URL configuration
+  // These URLs should match the environment variables in .env.local
+  // WHY: Using NEXT_PUBLIC_ prefix because this is imported by client components
+  // Client-side code can only access env vars with NEXT_PUBLIC_ prefix in Next.js
++ const room1Url = process.env.NEXT_PUBLIC_DAILY_ROOM_1 || 'https://overcast.daily.co/cohort-1';
++ const room2Url = process.env.NEXT_PUBLIC_DAILY_ROOM_2 || 'https://overcast.daily.co/cohort-2';
++ const room3Url = process.env.NEXT_PUBLIC_DAILY_ROOM_3 || 'https://overcast.daily.co/cohort-3';
++ const room4Url = process.env.NEXT_PUBLIC_DAILY_ROOM_4 || 'https://overcast.daily.co/cohort-4';
++ const room5Url = process.env.NEXT_PUBLIC_DAILY_ROOM_5 || 'https://overcast.daily.co/cohort-5';
++ const room6Url = process.env.NEXT_PUBLIC_DAILY_ROOM_6 || 'https://overcast.daily.co/cohort-6';
++ 
+  export const DAILY_ROOMS = [
+    {
+      id: '1',
+-     name: CLASSROOM_NAMES[0],
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_1 || 'https://overcast.daily.co/cohort-1',
++     name: extractRoomName(room1Url),
++     url: room1Url,
+      capacity: 50
+    },
+    {
+      id: '2', 
+-     name: CLASSROOM_NAMES[1],
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_2 || 'https://overcast.daily.co/cohort-2',
++     name: extractRoomName(room2Url),
++     url: room2Url,
+      capacity: 50
+    },
+    {
+      id: '3',
+-     name: CLASSROOM_NAMES[2], 
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_3 || 'https://overcast.daily.co/cohort-3',
++     name: extractRoomName(room3Url), 
++     url: room3Url,
+      capacity: 50
+    },
+    {
+      id: '4',
+-     name: CLASSROOM_NAMES[3],
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_4 || 'https://overcast.daily.co/cohort-4', 
++     name: extractRoomName(room4Url),
++     url: room4Url, 
+      capacity: 50
+    },
+    {
+      id: '5',
+-     name: CLASSROOM_NAMES[4],
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_5 || 'https://overcast.daily.co/cohort-5',
++     name: extractRoomName(room5Url),
++     url: room5Url,
+      capacity: 50
+    },
+    {
+      id: '6',
+-     name: CLASSROOM_NAMES[5],
+-     url: process.env.NEXT_PUBLIC_DAILY_ROOM_6 || 'https://overcast.daily.co/cohort-6',
++     name: extractRoomName(room6Url),
++     url: room6Url,
+      capacity: 50
+    }
+```
+
+</details>
+
+---
+
+<think><details><summary>Thought Process</summary>Good! Now I should check if there are any linting errors and verify the changes work correctly.</details></think>
+
+---
+
+Tool use: **read_lints**
+
+---
+
+<think><details><summary>Thought Process</summary>Great! The linting passed. Now let me verify that the changes will work correctly by checking the output. The room names should now be extracted from the URLs dynamically. So if the URL is "https://overclockaccelerator.daily.co/01-clippy", the name will be "01-clippy".
+
+Let me also check if CLASSROOM_NAMES is used anywhere else in the codebase that might need updating.</details></think>
+
+---
+
+Tool use: **grep**
+
+---
+
+<think><details><summary>Thought Process</summary>Good, CLASSROOM_NAMES is only defined in constants.ts and mentioned in the README, so there's no other code that depends on it. The changes should work correctly.
+
+Let me now check if the rooms API also needs updating since it might be using CLASSROOM_NAMES.</details></think>
+
+---
+
+Tool use: **read_file**
+
+Read file: app/api/rooms/route.ts
+
+---
+
+<think><details><summary>Thought Process</summary>Good! The API already uses `room.name` from DAILY_ROOMS, so it will automatically pick up the new extracted names. No changes needed there.
+
+Now let me create a quick summary of what was changed.</details></think>
+
+---
+
+Perfect! The changes are complete. Here's what I did:
+
+## Summary
+
+**Updated `lib/daily-config.ts`** to dynamically extract room names from URLs:
+
+1. **Added `extractRoomName()` function** - Extracts the final portion of the URL (e.g., "01-clippy" from "https://overclockaccelerator.daily.co/01-clippy")
+
+2. **Updated room configuration** - Each room now uses the extracted name instead of hardcoded names like "Cohort Alpha"
+
+3. **Backward compatible** - If URL parsing fails, falls back to "Unknown Room"
+
+## Results
+
+Your classrooms will now display as:
+- Room 1: **01-clippy** (instead of "Cohort Alpha")
+- Room 2: **02-jarvis** (instead of "Cohort Beta")
+- Room 3: **03-r2d2** (instead of "Cohort Gamma")
+- Room 4: **04-cortana** (instead of "Cohort Delta")
+- Room 5: **05-optimus** (instead of "Cohort Epsilon")
+- Room 6: **06-robocop** (instead of "Cohort Zeta")
+
+The names are automatically extracted from your Daily.co room URLs configured in `.env.local`. This makes it much easier to identify which room you're in and matches what you see in the Daily.co dashboard!
+
+Refresh your browser and you should see the new room names in both the lobby grid and the classroom header.
 
 ---
 
