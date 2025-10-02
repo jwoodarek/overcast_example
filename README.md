@@ -154,19 +154,99 @@ npm run type-check
 ## Deployment
 
 ### Vercel (Recommended)
-```bash
-# Deploy to Vercel
-npm run build
-vercel --prod
 
-# Set environment variables in Vercel dashboard
+This application is optimized for deployment on Vercel with automatic serverless function scaling and edge network distribution.
+
+#### Quick Deploy
+
+1. **Connect your repository**:
+   ```bash
+   # Install Vercel CLI (if not already installed)
+   npm i -g vercel
+   
+   # Login to Vercel
+   vercel login
+   
+   # Deploy
+   vercel
+   ```
+
+2. **Set environment variables** in Vercel Dashboard:
+   - Go to your project → Settings → Environment Variables
+   - Add the following variables for Production, Preview, and Development:
+
+#### Required Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DAILY_API_KEY` | Your Daily.co API key from dashboard | `abc123...` |
+| `DAILY_ROOM_1` | Production room URL for Cohort 1 | `https://overcast.daily.co/cohort-1` |
+| `DAILY_ROOM_2` | Production room URL for Cohort 2 | `https://overcast.daily.co/cohort-2` |
+| `DAILY_ROOM_3` | Production room URL for Cohort 3 | `https://overcast.daily.co/cohort-3` |
+| `DAILY_ROOM_4` | Production room URL for Cohort 4 | `https://overcast.daily.co/cohort-4` |
+| `DAILY_ROOM_5` | Production room URL for Cohort 5 | `https://overcast.daily.co/cohort-5` |
+| `DAILY_ROOM_6` | Production room URL for Cohort 6 | `https://overcast.daily.co/cohort-6` |
+| `NEXT_PUBLIC_APP_NAME` | Application display name | `Overcast` |
+| `NEXT_PUBLIC_MAX_PARTICIPANTS_PER_ROOM` | Max participants per classroom | `50` |
+
+#### Deployment Configuration
+
+The `vercel.json` configuration includes:
+- **Optimized serverless functions**: 1024MB memory, 10s timeout
+- **Security headers**: Content security, XSS protection, frame options
+- **CORS headers**: Configured for Daily.co video integration
+- **Permissions**: Camera, microphone, and display capture enabled
+- **Region**: US East (iad1) for optimal Daily.co connectivity
+
+#### Production Build
+
+```bash
+# Test production build locally
+npm run build
+npm start
+
+# Deploy to production
+vercel --prod
 ```
 
-### Environment Variables for Production
-- `DAILY_API_KEY` - Your Daily.co API key
-- `DAILY_ROOM_1` through `DAILY_ROOM_6` - Production room URLs
-- `NEXT_PUBLIC_APP_NAME` - Application name
-- `NEXT_PUBLIC_MAX_PARTICIPANTS_PER_ROOM` - Participant limit (50)
+#### Monitoring and Logs
+
+- **View logs**: `vercel logs <deployment-url>`
+- **Real-time logs**: Vercel Dashboard → Your Project → Deployments → Logs
+- **Error tracking**: Structured JSON logs in production (see `lib/utils.ts` Logger)
+
+#### Domain Configuration
+
+1. Go to Vercel Dashboard → Your Project → Settings → Domains
+2. Add your custom domain (e.g., `overcast.yourcompany.com`)
+3. Follow DNS configuration instructions
+4. SSL certificates are automatically provisioned
+
+#### Performance Optimization
+
+The deployment is configured for:
+- ✅ Edge caching for static assets
+- ✅ Serverless function cold start optimization
+- ✅ Automatic image optimization via Next.js
+- ✅ Code splitting and lazy loading
+- ✅ Gzip/Brotli compression
+
+#### Troubleshooting
+
+**Build fails**:
+- Check environment variables are set correctly
+- Verify Daily.co API key is valid
+- Review build logs in Vercel Dashboard
+
+**Video not connecting**:
+- Verify DAILY_ROOM_* URLs are accessible
+- Check browser console for CORS errors
+- Ensure Permissions-Policy headers allow camera/microphone
+
+**Slow performance**:
+- Check serverless function execution time in logs
+- Monitor Daily.co connection quality
+- Review Network tab in browser DevTools
 
 ## Contributing
 

@@ -113,8 +113,8 @@
 - [ ] T046 [P] Unit tests for utility functions in tests/unit/test_utils.test.ts
 - [ ] T047 [P] Component tests using React Testing Library in tests/unit/components/
 - [ ] T048 [P] Performance optimization (code splitting, lazy loading)
-- [ ] T049 [P] Add comprehensive error logging and monitoring
-- [ ] T050 [P] Create deployment configuration for Vercel
+- [x] T049 [P] Add comprehensive error logging and monitoring
+- [x] T050 [P] Create deployment configuration for Vercel
 - [ ] T051 Run quickstart validation scenarios from quickstart.md
 - [ ] T052 Performance testing (verify <200ms page loads, <100ms video connection)
 
