@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: Overcast Rooms API
+  description: API for managing classroom rooms and participants
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+  - url: https://overcast.vercel.app/api
+    description: Production server
+
+paths:
+  /rooms:
+    get:
+      summary: Get all available classrooms
+      description: Returns list of 6 classrooms with current status
+      responses:
+        '200':
+          description: List of classrooms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  classrooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Classroom'
+                  totalCapacity:
+                    type: number
+                    example: 300
+                  activeRooms:
+                    type: number
+                    example: 3
+              example:
+                classrooms:
+                  - id: "1"
+                    name: "Cohort 1"
+                    participantCount: 12
+                    isActive: true
+                    maxCapacity: 50
+                  - id: "2"
+                    name: "Cohort 2"
+                    participantCount: 0
+                    isActive: false
+                    maxCapacity: 50
+                totalCapacity: 300
+                activeRooms: 1
+
+  /rooms/{roomId}:
+    get:
+      summary: Get specific classroom details
+      description: Returns detailed information about a specific classroom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[1-6]$'
+          description: Classroom ID (1-6)
+      responses:
+        '200':
+          description: Classroom details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassroomDetails'
+        '404':
+          description: Classroom not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rooms/{roomId}/join:
+    post:
+      summary: Join a classroom
+      description: Attempt to join a classroom as student or instructor
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[1-6]$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - role
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "John Doe"
+                role:
+                  type: string
+                  enum: [student, instructor]
+                  example: "student"
+      responses:
+        '200':
+          description: Successfully joined classroom
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  participant:
+                    $ref: '#/components/schemas/Participant'
+                  dailyRoomUrl:
+                    type: string
+                    format: uri
+                    example: "https://overcast.daily.co/room1"
+                  token:
+                    type: string
+                    description: Daily.co room token
+        '400':
+          description: Invalid request (bad name, invalid role)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Classroom is full
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Classroom full"
+                  message:
+                    type: string
+                    example: "This classroom has reached its maximum capacity of 50 participants"
+                  maxCapacity:
+                    type: number
+                    example: 50
+                  currentCount:
+                    type: number
+                    example: 50
+
+  /rooms/{roomId}/leave:
+    post:
+      summary: Leave a classroom
+      description: Remove participant from classroom and update counts
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[1-6]$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Successfully left classroom
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Left classroom successfully"
+        '404':
+          description: Participant not found in classroom
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Classroom:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '^[1-6]$'
+          example: "1"
+        name:
+          type: string
+          example: "Cohort 1"
+        participantCount:
+          type: number
+          minimum: 0
+          maximum: 50
+          example: 12
+        isActive:
+          type: boolean
+          example: true
+        maxCapacity:
+          type: number
+          example: 50
+      required:
+        - id
+        - name
+        - participantCount
+        - isActive
+        - maxCapacity
+
+    ClassroomDetails:
+      allOf:
+        - $ref: '#/components/schemas/Classroom'
+        - type: object
+          properties:
+            instructors:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+            students:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+            createdAt:
+              type: string
+              format: date-time
+              example: "2025-10-02T10:30:00Z"
+
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        role:
+          type: string
+          enum: [student, instructor]
+          example: "student"
+        sessionId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        joinedAt:
+          type: string
+          format: date-time
+          example: "2025-10-02T10:35:00Z"
+      required:
+        - name
+        - role
+        - sessionId
+        - joinedAt
+
+    Participant:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            classroomId:
+              type: string
+              pattern: '^[1-6]$'
+              example: "1"
+            isAudioMuted:
+              type: boolean
+              example: false
+            isVideoEnabled:
+              type: boolean
+              example: true
+            connectionState:
+              type: string
+              enum: [connecting, connected, disconnected]
+              example: "connected"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Invalid classroom ID"
+        code:
+          type: string
+          example: "INVALID_ROOM_ID"
+      required:
+        - error
+        - message

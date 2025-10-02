@@ -8,7 +8,41 @@ globs: *
 ## CODING STYLE & BEST PRACTICES
 
 *   Write clean and easy-to-read code.
-*   Focus on simplicity.
-*   Comment regularly.
-*   Assume the project will be read by relative newcomers to full-stack development.
-*   Where possible avoid creating excessive files. Rely on single files as much as possible.
+*   Focus on simplicity. Prioritize readability over cleverness.
+*   Comment regularly. Explain WHY decisions were made, especially for newcomers.
+*   Assume the project will be read by relative newcomers to full-stack development. Architecture should be accessible to junior developers. Use clear naming, avoid jargon, and explain complex patterns.
+*   Where possible avoid creating excessive files. Rely on single files as much as possible. Minimize file count without sacrificing clarity. Keep related functionality together, avoid unnecessary splits.
+*   Tests as living documentation. Test names and structure should teach how features work.
+*   Favor straightforward solutions that newcomers can understand.
+*   When simple solutions won't work, justify complexity.
+*   When writing commit messages, ensure they are clear and educational.
+*   Based on Overcast Constitution v1.0.0 (ratified 2025-10-02)
+
+## WORKFLOW & RELEASE RULES
+
+*   Pay close attention to task dependencies. Tasks marked with [P] can run in parallel *within their group*. Respect the dependency relationship between groups of tasks. For example, type definitions and constants must be created before components that rely on them.
+*   When implementing tasks, mark the task off as [X] in the tasks file.
+
+## DEBUGGING
+
+*   When debugging Daily.co integration issues, utilize the following console logs in `app/components/Classroom.tsx`:
+    *   `[Daily] Already initialized, skipping duplicate`
+    *   `[Daily] Starting initialization...`
+    *   `[Daily] Creating call object...`
+    *   `[Daily] Call object created successfully`
+    *   `[Classroom] Looking for classroom ID: X`
+    *   `[Classroom] Found config: {...}`
+    *   `[Classroom] Using Daily room URL: https://...`
+    *   `[joinRoom] Attempting to join room: { url, userName, role, sessionId }`
+    *   `[joinRoom] Join request completed successfully`
+    *   `[joinRoom] Failed to join Daily room: ...`
+    *   `[joinRoom] Room URL that failed: ...`
+    *   `[joinRoom] Error details: {...}`
+    *   `[joinRoom] Parsed error: {...}`
+    *   `[Daily Event] Joined meeting successfully`
+    *   `[Daily Event] Left meeting`
+    *   `[Daily Event] Error occurred: ...`
+    *   `[Daily Event] Error message: ...`
+    *   `[Daily Event] Full error details: ...`
+    *   `[Daily Event] Participant joined: ...`
+    *   `[Daily Event] Participant left: ...`

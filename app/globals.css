@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
+/* Overcast Futuristic Theme - Black/Teal Aesthetic */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors - Futuristic Black/Teal */
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #00FFD1; /* Neon teal */
+  --primary-dark: #00E6BC;
+  --secondary: #FFBD17; /* Accent yellow/orange */
+  --accent: #1a1a1a; /* Dark gray for cards */
+  --border: #333333;
+  --muted: #666666;
+  
+  /* Status Colors */
+  --success: #00FFD1;
+  --warning: #FFBD17;
+  --error: #FF4444;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #00FFD1 0%, #00E6BC 100%);
+  --gradient-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Custom Components */
+@layer components {
+  /* Futuristic Button Styles */
+  .btn-primary {
+    @apply bg-[#00FFD1] text-black font-bold px-6 py-3 rounded-lg;
+    @apply hover:bg-[#00E6BC] transition-all duration-200;
+    @apply shadow-lg shadow-[#00FFD1]/20;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-[#00FFD1] text-[#00FFD1] font-bold px-6 py-3 rounded-lg;
+    @apply hover:bg-[#00FFD1] hover:text-black transition-all duration-200;
+  }
+  
+  /* Classroom Card Styles */
+  .classroom-card {
+    @apply bg-[#1a1a1a] border border-[#333333] rounded-xl p-6;
+    @apply hover:border-[#00FFD1] hover:shadow-lg hover:shadow-[#00FFD1]/10;
+    @apply transition-all duration-300 cursor-pointer;
+  }
+  
+  .classroom-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Video Container */
+  .video-container {
+    @apply bg-black border border-[#333333] rounded-lg overflow-hidden;
+    @apply shadow-2xl;
+  }
+  
+  /* Instructor Controls */
+  .instructor-panel {
+    @apply bg-[#1a1a1a] border border-[#333333] rounded-lg p-4;
+    @apply shadow-lg;
+  }
+  
+  /* Branding */
+  .brand-text {
+    @apply text-[#666666] text-sm font-medium tracking-wide;
+  }
+  
+  /* Geometric Typography */
+  .title-primary {
+    @apply text-4xl font-black uppercase tracking-wider text-white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+  }
+  
+  .title-secondary {
+    @apply text-2xl font-bold uppercase tracking-wide text-[#00FFD1];
+  }
+  
+  /* Loading States */
+  .loading-pulse {
+    @apply animate-pulse bg-[#333333] rounded;
+  }
+  
+  /* Status Indicators */
+  .status-active {
+    @apply w-3 h-3 bg-[#00FFD1] rounded-full animate-pulse;
+  }
+  
+  .status-inactive {
+    @apply w-3 h-3 bg-[#666666] rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Custom Scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #00FFD1 #1a1a1a;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #00FFD1;
+    border-radius: 3px;
+  }
+  
+  /* Glow Effects */
+  .glow-teal {
+    box-shadow: 0 0 20px rgba(0, 255, 209, 0.3);
+  }
+  
+  .glow-teal-strong {
+    box-shadow: 0 0 30px rgba(0, 255, 209, 0.5);
+  }
 }

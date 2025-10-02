@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: Overcast Participants API
+  description: API for managing participant actions and instructor controls
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+  - url: https://overcast.vercel.app/api
+    description: Production server
+
+paths:
+  /participants/{sessionId}/mute:
+    post:
+      summary: Mute or unmute a participant
+      description: Instructor action to control participant audio (requires instructor role)
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Target participant's session ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instructorSessionId
+                - muted
+                - classroomId
+              properties:
+                instructorSessionId:
+                  type: string
+                  format: uuid
+                  description: Session ID of instructor making the request
+                muted:
+                  type: boolean
+                  description: True to mute, false to unmute
+                classroomId:
+                  type: string
+                  pattern: '^[1-6]$'
+                  description: Classroom where action is taking place
+      responses:
+        '200':
+          description: Participant mute state updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  participant:
+                    $ref: '#/components/schemas/ParticipantState'
+                  message:
+                    type: string
+                    example: "Participant muted successfully"
+        '403':
+          description: Insufficient permissions (not an instructor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Participant or classroom not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /participants/mute-all:
+    post:
+      summary: Mute all participants in a classroom
+      description: Instructor action to mute all students (instructors excluded)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instructorSessionId
+                - classroomId
+                - muted
+              properties:
+                instructorSessionId:
+                  type: string
+                  format: uuid
+                  description: Session ID of instructor making the request
+                classroomId:
+                  type: string
+                  pattern: '^[1-6]$'
+                  description: Target classroom
+                muted:
+                  type: boolean
+                  description: True to mute all, false to unmute all
+                excludeInstructors:
+                  type: boolean
+                  default: true
+                  description: Whether to exclude other instructors from mute action
+      responses:
+        '200':
+          description: All participants muted/unmuted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  affectedCount:
+                    type: number
+                    description: Number of participants affected
+                    example: 15
+                  message:
+                    type: string
+                    example: "All participants muted successfully"
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /breakout-rooms:
+    post:
+      summary: Create a breakout room
+      description: Instructor creates a breakout room within their classroom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instructorSessionId
+                - parentClassroomId
+                - name
+                - participantIds
+              properties:
+                instructorSessionId:
+                  type: string
+                  format: uuid
+                  description: Session ID of instructor creating the room
+                parentClassroomId:
+                  type: string
+                  pattern: '^[1-6]$'
+                  description: Main classroom ID
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: "Discussion Group A"
+                participantIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: List of participant session IDs to include
+                  example: ["123e4567-e89b-12d3-a456-426614174000"]
+                maxDuration:
+                  type: number
+                  minimum: 5
+                  maximum: 120
+                  default: 30
+                  description: Maximum duration in minutes
+      responses:
+        '201':
+          description: Breakout room created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  breakoutRoom:
+                    $ref: '#/components/schemas/BreakoutRoom'
+                  dailyRoomUrl:
+                    type: string
+                    format: uri
+                    description: Daily.co URL for the breakout room
+        '400':
+          description: Invalid request (bad participants, name, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /breakout-rooms/{breakoutId}:
+    delete:
+      summary: End a breakout room
+      description: Instructor ends a breakout room and returns participants to main classroom
+      parameters:
+        - name: breakoutId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instructorSessionId
+              properties:
+                instructorSessionId:
+                  type: string
+                  format: uuid
+                  description: Session ID of instructor ending the room
+      responses:
+        '200':
+          description: Breakout room ended successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  participantsReturned:
+                    type: number
+                    description: Number of participants returned to main room
+                    example: 5
+                  message:
+                    type: string
+                    example: "Breakout room ended, participants returned to main classroom"
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Breakout room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /participants/{sessionId}/status:
+    get:
+      summary: Get participant status
+      description: Get current status and permissions for a participant
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Participant status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantStatus'
+        '404':
+          description: Participant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ParticipantState:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          type: string
+          enum: [student, instructor]
+        classroomId:
+          type: string
+          pattern: '^[1-6]$'
+        isAudioMuted:
+          type: boolean
+        isVideoEnabled:
+          type: boolean
+        connectionState:
+          type: string
+          enum: [connecting, connected, disconnected]
+        joinedAt:
+          type: string
+          format: date-time
+      required:
+        - sessionId
+        - name
+        - role
+        - classroomId
+        - isAudioMuted
+        - isVideoEnabled
+        - connectionState
+        - joinedAt
+
+    ParticipantStatus:
+      allOf:
+        - $ref: '#/components/schemas/ParticipantState'
+        - type: object
+          properties:
+            permissions:
+              type: object
+              properties:
+                canMuteOthers:
+                  type: boolean
+                  description: Can mute other participants
+                canCreateBreakouts:
+                  type: boolean
+                  description: Can create breakout rooms
+                canEndBreakouts:
+                  type: boolean
+                  description: Can end breakout rooms
+              required:
+                - canMuteOthers
+                - canCreateBreakouts
+                - canEndBreakouts
+            currentBreakoutRoom:
+              type: string
+              format: uuid
+              nullable: true
+              description: ID of current breakout room if in one
+
+    BreakoutRoom:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        parentClassroomId:
+          type: string
+          pattern: '^[1-6]$'
+        name:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParticipantState'
+        createdBy:
+          type: string
+          format: uuid
+          description: Session ID of instructor who created it
+        createdAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        maxDuration:
+          type: number
+          description: Maximum duration in minutes
+        remainingTime:
+          type: number
+          description: Remaining time in minutes
+      required:
+        - id
+        - parentClassroomId
+        - name
+        - participants
+        - createdBy
+        - createdAt
+        - isActive
+        - maxDuration
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Forbidden"
+        message:
+          type: string
+          example: "Insufficient permissions to perform this action"
+        code:
+          type: string
+          example: "INSUFFICIENT_PERMISSIONS"
+      required:
+        - error
+        - message
