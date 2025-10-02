@@ -17,3 +17,7 @@ globs: *
 *   When simple solutions won't work, justify complexity.
 *   When writing commit messages, ensure they are clear and educational.
 *   Based on Overcast Constitution v1.0.0 (ratified 2025-10-02)
+
+## WORKFLOW & RELEASE RULES
+
+*   Pay close attention to task dependencies. Tasks marked with [P] can run in parallel *within their group*. Respect the dependency relationship between groups of tasks. For example, type definitions and constants must be created before components that rely on them.

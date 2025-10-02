@@ -1,0 +1,2701 @@
+{
+  "config": {
+    "configFile": "C:\\Code_Work\\overcast\\playwright.config.ts",
+    "rootDir": "C:/Code_Work/overcast/tests/integration",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "C:\\Code_Work\\overcast\\tests\\integration\\global-setup.ts",
+    "globalTeardown": "C:\\Code_Work\\overcast\\tests\\integration\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Code_Work/overcast/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Code_Work/overcast/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Code_Work/overcast/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Code_Work/overcast/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Code_Work/overcast/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Code_Work/overcast/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Code_Work/overcast/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/Code_Work/overcast/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Code_Work/overcast/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "C:/Code_Work/overcast/tests/integration",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 8,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "test_capacity_limits.test.ts",
+      "file": "test_capacity_limits.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Classroom Capacity Limits Integration Tests",
+          "file": "test_capacity_limits.test.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should enforce 50-participant limit per classroom",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-9f55ddea288577a7b022",
+              "file": "test_capacity_limits.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should allow joining when classroom has available capacity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-4ceb73a1c638edb90ee5",
+              "file": "test_capacity_limits.test.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity checks for all 6 classrooms independently",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-512372b3c60b4b0fa20c",
+              "file": "test_capacity_limits.test.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "should handle real-time capacity updates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-e9d54fd622c4d61ba55c",
+              "file": "test_capacity_limits.test.ts",
+              "line": 173,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor capacity limits correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-633c95efc585d8c62799",
+              "file": "test_capacity_limits.test.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "should display capacity information in lobby",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-968f79c458fe459df679",
+              "file": "test_capacity_limits.test.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity validation errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-e8f73d4e538332ab3944",
+              "file": "test_capacity_limits.test.ts",
+              "line": 313,
+              "column": 7
+            },
+            {
+              "title": "should enforce 50-participant limit per classroom",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-d946687a5a31bbc4c1b4",
+              "file": "test_capacity_limits.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should allow joining when classroom has available capacity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-fe9d5b38b5eb713bfe26",
+              "file": "test_capacity_limits.test.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity checks for all 6 classrooms independently",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-6569522fdc7ca277fd0c",
+              "file": "test_capacity_limits.test.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "should handle real-time capacity updates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-ad5ecf88a5d3a96597f8",
+              "file": "test_capacity_limits.test.ts",
+              "line": 173,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor capacity limits correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-8cbef5b618682475c668",
+              "file": "test_capacity_limits.test.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "should display capacity information in lobby",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-55b22bbfaaf254be7934",
+              "file": "test_capacity_limits.test.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity validation errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-f4dfb4e6d7f9dd56009c",
+              "file": "test_capacity_limits.test.ts",
+              "line": 313,
+              "column": 7
+            },
+            {
+              "title": "should enforce 50-participant limit per classroom",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-c62c21486bce02c51cab",
+              "file": "test_capacity_limits.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should allow joining when classroom has available capacity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-7b3cd9d58875f51bdbdd",
+              "file": "test_capacity_limits.test.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity checks for all 6 classrooms independently",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-88367a0f34950f4e310d",
+              "file": "test_capacity_limits.test.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "should handle real-time capacity updates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-f8852fc066bb75806ca4",
+              "file": "test_capacity_limits.test.ts",
+              "line": 173,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor capacity limits correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-7b2af485dd3c1a7b4c56",
+              "file": "test_capacity_limits.test.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "should display capacity information in lobby",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-ef4627fde3454e1f5d2a",
+              "file": "test_capacity_limits.test.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity validation errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-ce3637fd0c60776e9198",
+              "file": "test_capacity_limits.test.ts",
+              "line": 313,
+              "column": 7
+            },
+            {
+              "title": "should enforce 50-participant limit per classroom",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-8f95decf230911dd1004",
+              "file": "test_capacity_limits.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should allow joining when classroom has available capacity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-54b756b5186af67ac22f",
+              "file": "test_capacity_limits.test.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity checks for all 6 classrooms independently",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-0a844775cfb34410b287",
+              "file": "test_capacity_limits.test.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "should handle real-time capacity updates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-ea09af7e48270d9e7bbf",
+              "file": "test_capacity_limits.test.ts",
+              "line": 173,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor capacity limits correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-07f2cb647f3a923095a3",
+              "file": "test_capacity_limits.test.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "should display capacity information in lobby",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-a09e44d90fdfef7d3e0a",
+              "file": "test_capacity_limits.test.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity validation errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-daffb7b05a078826bc25",
+              "file": "test_capacity_limits.test.ts",
+              "line": 313,
+              "column": 7
+            },
+            {
+              "title": "should enforce 50-participant limit per classroom",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-1f1e75f9db773d36a79e",
+              "file": "test_capacity_limits.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should allow joining when classroom has available capacity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-d9f8282a1af0fdc610fb",
+              "file": "test_capacity_limits.test.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity checks for all 6 classrooms independently",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-fff9df26588b54f762c8",
+              "file": "test_capacity_limits.test.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "should handle real-time capacity updates",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-e22636d3e07f93fbcbd6",
+              "file": "test_capacity_limits.test.ts",
+              "line": 173,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor capacity limits correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-0ab6e6d48df5fac3c914",
+              "file": "test_capacity_limits.test.ts",
+              "line": 235,
+              "column": 7
+            },
+            {
+              "title": "should display capacity information in lobby",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-407bb5f81cae20fd07b2",
+              "file": "test_capacity_limits.test.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "should handle capacity validation errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "970230bf17b3c25b7f33-0ba4c8b96c15f6f60f0b",
+              "file": "test_capacity_limits.test.ts",
+              "line": 313,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "test_instructor_journey.test.ts",
+      "file": "test_instructor_journey.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Instructor Journey Integration Tests",
+          "file": "test_instructor_journey.test.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should complete full instructor journey with classroom management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-7c9ef4fea358f640fb10",
+              "file": "test_instructor_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle participant management controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-fc23b332f59b8847f8c7",
+              "file": "test_instructor_journey.test.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation and management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-1cd15e711b91f7db8131",
+              "file": "test_instructor_journey.test.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor privileges across classroom switches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-33df1b0f441e28adebd7",
+              "file": "test_instructor_journey.test.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor mode toggle correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-4a29c96817ce400a443c",
+              "file": "test_instructor_journey.test.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "should validate instructor permissions and access control",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-0ff06c3199451e36566f",
+              "file": "test_instructor_journey.test.ts",
+              "line": 194,
+              "column": 7
+            },
+            {
+              "title": "should complete full instructor journey with classroom management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-fdad00b9897daeb13466",
+              "file": "test_instructor_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle participant management controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-11991238d8a453d2b3e9",
+              "file": "test_instructor_journey.test.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation and management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-e295f1605ccc22208019",
+              "file": "test_instructor_journey.test.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor privileges across classroom switches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-048d35d5a1d24e7ee51f",
+              "file": "test_instructor_journey.test.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor mode toggle correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-f99e1d99d971594fba01",
+              "file": "test_instructor_journey.test.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "should validate instructor permissions and access control",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-2e58595e5424e731eda3",
+              "file": "test_instructor_journey.test.ts",
+              "line": 194,
+              "column": 7
+            },
+            {
+              "title": "should complete full instructor journey with classroom management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-a8a156024a94a8570a0b",
+              "file": "test_instructor_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle participant management controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-cb9c41f2795191c5d7ac",
+              "file": "test_instructor_journey.test.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation and management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-3d3f1cb22c8fbd93d0a6",
+              "file": "test_instructor_journey.test.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor privileges across classroom switches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-26af2f8cd87dd9e34141",
+              "file": "test_instructor_journey.test.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor mode toggle correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-a2798c734d7b1016b95d",
+              "file": "test_instructor_journey.test.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "should validate instructor permissions and access control",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-2c264590747b9c793b29",
+              "file": "test_instructor_journey.test.ts",
+              "line": 194,
+              "column": 7
+            },
+            {
+              "title": "should complete full instructor journey with classroom management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-e1a83189096daa6f8b7a",
+              "file": "test_instructor_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle participant management controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-278fa062448ce0f52ba3",
+              "file": "test_instructor_journey.test.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation and management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-26ceaa9f9035363c6c63",
+              "file": "test_instructor_journey.test.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor privileges across classroom switches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-1ea450b87e9acba9709b",
+              "file": "test_instructor_journey.test.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor mode toggle correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-30072f41c3c6391cb430",
+              "file": "test_instructor_journey.test.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "should validate instructor permissions and access control",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-bf70c6aba73c123bd403",
+              "file": "test_instructor_journey.test.ts",
+              "line": 194,
+              "column": 7
+            },
+            {
+              "title": "should complete full instructor journey with classroom management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-c42ef7b950023959994f",
+              "file": "test_instructor_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle participant management controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-05b4fa2afcbc1b7b6b00",
+              "file": "test_instructor_journey.test.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation and management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-32b7a404d9faf49b12e3",
+              "file": "test_instructor_journey.test.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor privileges across classroom switches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-18c471b975794fce7ff2",
+              "file": "test_instructor_journey.test.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor mode toggle correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-4940f5aca422f9bdbfa2",
+              "file": "test_instructor_journey.test.ts",
+              "line": 171,
+              "column": 7
+            },
+            {
+              "title": "should validate instructor permissions and access control",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "fc2aa37ab14270119f96-c32fd2a73a12b39f5ac1",
+              "file": "test_instructor_journey.test.ts",
+              "line": 194,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "test_multiple_instructors.test.ts",
+      "file": "test_multiple_instructors.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Multiple Instructor Scenario Integration Tests",
+          "file": "test_multiple_instructors.test.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should allow multiple instructors with equal privileges",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-d06dda26dc2b875f62d1",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle concurrent instructor actions without conflicts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-f90d08f015ee2d9c8f71",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation by multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-54ac1b4bd83917f973d2",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor state when one instructor leaves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-bd3019d0a8e79b6bafaf",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor privilege validation with multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-b1024c516612f28b2220",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor role transitions correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-b84c2929ce4810365226",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 254,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor communication and coordination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-b8c463f262ae83349604",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 296,
+              "column": 7
+            },
+            {
+              "title": "should allow multiple instructors with equal privileges",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-5a2b8d5dc2806b51a1d4",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle concurrent instructor actions without conflicts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-4ad2d7b02ff3f726b378",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation by multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-4369ff6ec4048545cd92",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor state when one instructor leaves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-5aeab55572f126da07f5",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor privilege validation with multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-a612fca9ec65d8b9887d",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor role transitions correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-9b7d153601bb4a342f64",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 254,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor communication and coordination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-2b7ad42a25b9e6302465",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 296,
+              "column": 7
+            },
+            {
+              "title": "should allow multiple instructors with equal privileges",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-22d4cc02462958cac88e",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle concurrent instructor actions without conflicts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-323403c433e166710a28",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation by multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-ec1278922abf4aac228e",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor state when one instructor leaves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-106f45754f8ce7317d6a",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor privilege validation with multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-74c1098ac7f8a47b3f66",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor role transitions correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-888886b1ac2a517b21bd",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 254,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor communication and coordination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-5bc4789721bd0f41a0aa",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 296,
+              "column": 7
+            },
+            {
+              "title": "should allow multiple instructors with equal privileges",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-d89ea4f418fc30dc85fa",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle concurrent instructor actions without conflicts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-41ce7ddcbd5b503dc072",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation by multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-01712ecb13fe8a9c9052",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor state when one instructor leaves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-b5051ffc7e4908fb2182",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor privilege validation with multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-4c18834dcf09c05f068e",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor role transitions correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-64f899a24f5e95c0b9da",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 254,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor communication and coordination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-f7487bf51cfd721f5688",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 296,
+              "column": 7
+            },
+            {
+              "title": "should allow multiple instructors with equal privileges",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-8c4058e9d652c10d00a9",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle concurrent instructor actions without conflicts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-d197ffabdd76b003d0b5",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "should handle breakout room creation by multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-30ea534f6208513ff9c8",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "should maintain instructor state when one instructor leaves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-a5a169a58181c1dbb785",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 155,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor privilege validation with multiple instructors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-20fe4d5f03cd0fc99f50",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor role transitions correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-3e6363b68d83802e1786",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 254,
+              "column": 7
+            },
+            {
+              "title": "should handle instructor communication and coordination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "61bb718c9e697c630dbe-73268ee4a08b11be96ff",
+              "file": "test_multiple_instructors.test.ts",
+              "line": 296,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "test_student_journey.test.ts",
+      "file": "test_student_journey.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Student Journey Integration Tests",
+          "file": "test_student_journey.test.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should complete full student journey from lobby to classroom switching",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-175300f0e32ff7220edc",
+              "file": "test_student_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle classroom capacity limits gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-aad366c2bb9383e4dd26",
+              "file": "test_student_journey.test.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should maintain session state when switching between lobby and classrooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-2e9b37ff34c4f73be7e6",
+              "file": "test_student_journey.test.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "should handle network disconnection gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-8e52f8a85ef63a0c264d",
+              "file": "test_student_journey.test.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "should handle invalid classroom access gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-9e7b6d016104bb054702",
+              "file": "test_student_journey.test.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "should complete full student journey from lobby to classroom switching",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-e2eece17769e6862efeb",
+              "file": "test_student_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle classroom capacity limits gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-16cfd87bf3f125033fd5",
+              "file": "test_student_journey.test.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should maintain session state when switching between lobby and classrooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-4312f76b02a64121bd2f",
+              "file": "test_student_journey.test.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "should handle network disconnection gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-62a072caabd94fd1e35f",
+              "file": "test_student_journey.test.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "should handle invalid classroom access gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-6c30813450803dc98373",
+              "file": "test_student_journey.test.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "should complete full student journey from lobby to classroom switching",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-0f1ef90c7272b003eb90",
+              "file": "test_student_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle classroom capacity limits gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-dc6ca8819537a8dbe450",
+              "file": "test_student_journey.test.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should maintain session state when switching between lobby and classrooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-afcb16487618ad71c958",
+              "file": "test_student_journey.test.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "should handle network disconnection gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-ecb361798d1170a6c859",
+              "file": "test_student_journey.test.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "should handle invalid classroom access gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-38c22ea12d74b3f2d382",
+              "file": "test_student_journey.test.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "should complete full student journey from lobby to classroom switching",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-3aa0f2c17f7066e8c096",
+              "file": "test_student_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle classroom capacity limits gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-fcbf976bc8eaced038b2",
+              "file": "test_student_journey.test.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should maintain session state when switching between lobby and classrooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-fc7591cb74f34e2cce5d",
+              "file": "test_student_journey.test.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "should handle network disconnection gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-80603b409b1910aa5044",
+              "file": "test_student_journey.test.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "should handle invalid classroom access gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-bb308e3bab898c6e7209",
+              "file": "test_student_journey.test.ts",
+              "line": 169,
+              "column": 7
+            },
+            {
+              "title": "should complete full student journey from lobby to classroom switching",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-c2e9ce83fabfe6d0121c",
+              "file": "test_student_journey.test.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should handle classroom capacity limits gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-9f69627d22a72a450d74",
+              "file": "test_student_journey.test.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should maintain session state when switching between lobby and classrooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-b7b45775d4d94569aa85",
+              "file": "test_student_journey.test.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "should handle network disconnection gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-32dddbb23f9de0e3145b",
+              "file": "test_student_journey.test.ts",
+              "line": 148,
+              "column": 7
+            },
+            {
+              "title": "should handle invalid classroom access gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "1374440cc2ad32e070b4-88b0d82651fc3ae7f31d",
+              "file": "test_student_journey.test.ts",
+              "line": 169,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-02T08:06:01.966Z",
+    "duration": 216.10799999999995,
+    "expected": 0,
+    "skipped": 125,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

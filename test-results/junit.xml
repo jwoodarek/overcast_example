@@ -1,0 +1,542 @@
+<testsuites id="" name="" tests="125" failures="0" skipped="125" errors="0" time="0.21610799999999994">
+<testsuite name="test_capacity_limits.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="chromium" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Classroom Capacity Limits Integration Tests › should enforce 50-participant limit per classroom" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should allow joining when classroom has available capacity" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity checks for all 6 classrooms independently" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle real-time capacity updates" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle instructor capacity limits correctly" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should display capacity information in lobby" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity validation errors gracefully" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_instructor_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="chromium" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Instructor Journey Integration Tests › should complete full instructor journey with classroom management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle participant management controls" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle breakout room creation and management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should maintain instructor privileges across classroom switches" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle instructor mode toggle correctly" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should validate instructor permissions and access control" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_multiple_instructors.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="chromium" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Multiple Instructor Scenario Integration Tests › should allow multiple instructors with equal privileges" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle concurrent instructor actions without conflicts" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle breakout room creation by multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should maintain instructor state when one instructor leaves" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor privilege validation with multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor role transitions correctly" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor communication and coordination" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_student_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="chromium" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Student Journey Integration Tests › should complete full student journey from lobby to classroom switching" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle classroom capacity limits gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should maintain session state when switching between lobby and classrooms" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle network disconnection gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle invalid classroom access gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_capacity_limits.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="firefox" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Classroom Capacity Limits Integration Tests › should enforce 50-participant limit per classroom" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should allow joining when classroom has available capacity" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity checks for all 6 classrooms independently" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle real-time capacity updates" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle instructor capacity limits correctly" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should display capacity information in lobby" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity validation errors gracefully" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_instructor_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="firefox" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Instructor Journey Integration Tests › should complete full instructor journey with classroom management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle participant management controls" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle breakout room creation and management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should maintain instructor privileges across classroom switches" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle instructor mode toggle correctly" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should validate instructor permissions and access control" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_multiple_instructors.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="firefox" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Multiple Instructor Scenario Integration Tests › should allow multiple instructors with equal privileges" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle concurrent instructor actions without conflicts" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle breakout room creation by multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should maintain instructor state when one instructor leaves" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor privilege validation with multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor role transitions correctly" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor communication and coordination" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_student_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="firefox" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Student Journey Integration Tests › should complete full student journey from lobby to classroom switching" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle classroom capacity limits gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should maintain session state when switching between lobby and classrooms" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle network disconnection gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle invalid classroom access gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_capacity_limits.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="webkit" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Classroom Capacity Limits Integration Tests › should enforce 50-participant limit per classroom" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should allow joining when classroom has available capacity" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity checks for all 6 classrooms independently" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle real-time capacity updates" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle instructor capacity limits correctly" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should display capacity information in lobby" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity validation errors gracefully" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_instructor_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="webkit" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Instructor Journey Integration Tests › should complete full instructor journey with classroom management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle participant management controls" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle breakout room creation and management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should maintain instructor privileges across classroom switches" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle instructor mode toggle correctly" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should validate instructor permissions and access control" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_multiple_instructors.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="webkit" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Multiple Instructor Scenario Integration Tests › should allow multiple instructors with equal privileges" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle concurrent instructor actions without conflicts" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle breakout room creation by multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should maintain instructor state when one instructor leaves" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor privilege validation with multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor role transitions correctly" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor communication and coordination" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_student_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="webkit" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Student Journey Integration Tests › should complete full student journey from lobby to classroom switching" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle classroom capacity limits gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should maintain session state when switching between lobby and classrooms" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle network disconnection gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle invalid classroom access gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_capacity_limits.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Classroom Capacity Limits Integration Tests › should enforce 50-participant limit per classroom" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should allow joining when classroom has available capacity" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity checks for all 6 classrooms independently" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle real-time capacity updates" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle instructor capacity limits correctly" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should display capacity information in lobby" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity validation errors gracefully" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_instructor_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Instructor Journey Integration Tests › should complete full instructor journey with classroom management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle participant management controls" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle breakout room creation and management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should maintain instructor privileges across classroom switches" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle instructor mode toggle correctly" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should validate instructor permissions and access control" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_multiple_instructors.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Multiple Instructor Scenario Integration Tests › should allow multiple instructors with equal privileges" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle concurrent instructor actions without conflicts" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle breakout room creation by multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should maintain instructor state when one instructor leaves" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor privilege validation with multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor role transitions correctly" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor communication and coordination" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_student_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Chrome" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Student Journey Integration Tests › should complete full student journey from lobby to classroom switching" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle classroom capacity limits gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should maintain session state when switching between lobby and classrooms" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle network disconnection gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle invalid classroom access gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_capacity_limits.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Safari" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Classroom Capacity Limits Integration Tests › should enforce 50-participant limit per classroom" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should allow joining when classroom has available capacity" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity checks for all 6 classrooms independently" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle real-time capacity updates" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle instructor capacity limits correctly" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should display capacity information in lobby" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Classroom Capacity Limits Integration Tests › should handle capacity validation errors gracefully" classname="test_capacity_limits.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_instructor_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Safari" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Instructor Journey Integration Tests › should complete full instructor journey with classroom management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle participant management controls" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle breakout room creation and management" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should maintain instructor privileges across classroom switches" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should handle instructor mode toggle correctly" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Instructor Journey Integration Tests › should validate instructor permissions and access control" classname="test_instructor_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_multiple_instructors.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Safari" tests="7" failures="0" skipped="7" time="0" errors="0">
+<testcase name="Multiple Instructor Scenario Integration Tests › should allow multiple instructors with equal privileges" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle concurrent instructor actions without conflicts" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle breakout room creation by multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should maintain instructor state when one instructor leaves" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor privilege validation with multiple instructors" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor role transitions correctly" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Multiple Instructor Scenario Integration Tests › should handle instructor communication and coordination" classname="test_multiple_instructors.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="test_student_journey.test.ts" timestamp="2025-10-02T08:06:02.182Z" hostname="Mobile Safari" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Student Journey Integration Tests › should complete full student journey from lobby to classroom switching" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle classroom capacity limits gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should maintain session state when switching between lobby and classrooms" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle network disconnection gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Student Journey Integration Tests › should handle invalid classroom access gracefully" classname="test_student_journey.test.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

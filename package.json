@@ -5,7 +5,16 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:contract": "jest --selectProjects contract",
+    "test:integration": "playwright test",
+    "test:integration:ui": "playwright test --ui",
+    "test:integration:headed": "playwright test --headed",
+    "test:unit": "jest --selectProjects unit",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.84.0",
@@ -13,19 +22,22 @@
     "@playwright/test": "^1.55.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
+    "clsx": "^2.1.1",
     "eslint-config-next": "^15.5.4",
     "jest": "^30.2.0",
     "jotai": "^2.15.0",
     "next": "15.5.4",
     "prettier": "^3.6.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "jest-environment-jsdom": "^30.2.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4",
     "typescript": "^5"

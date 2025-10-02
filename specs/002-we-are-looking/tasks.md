@@ -52,34 +52,34 @@
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
 ### Contract Tests
-- [ ] T006 [P] Contract test GET /api/rooms in tests/contract/test_rooms_get.test.ts
-- [ ] T007 [P] Contract test GET /api/rooms/{roomId} in tests/contract/test_rooms_detail.test.ts
-- [ ] T008 [P] Contract test POST /api/rooms/{roomId}/join in tests/contract/test_rooms_join.test.ts
-- [ ] T009 [P] Contract test POST /api/rooms/{roomId}/leave in tests/contract/test_rooms_leave.test.ts
-- [ ] T010 [P] Contract test POST /api/participants/{sessionId}/mute in tests/contract/test_participants_mute.test.ts
-- [ ] T011 [P] Contract test POST /api/participants/mute-all in tests/contract/test_participants_mute_all.test.ts
-- [ ] T012 [P] Contract test POST /api/breakout-rooms in tests/contract/test_breakout_create.test.ts
+- [x] T006 [P] Contract test GET /api/rooms in tests/contract/test_rooms_get.test.ts
+- [x] T007 [P] Contract test GET /api/rooms/{roomId} in tests/contract/test_rooms_detail.test.ts
+- [x] T008 [P] Contract test POST /api/rooms/{roomId}/join in tests/contract/test_rooms_join.test.ts
+- [x] T009 [P] Contract test POST /api/rooms/{roomId}/leave in tests/contract/test_rooms_leave.test.ts
+- [x] T010 [P] Contract test POST /api/participants/{sessionId}/mute in tests/contract/test_participants_mute.test.ts
+- [x] T011 [P] Contract test POST /api/participants/mute-all in tests/contract/test_participants_mute_all.test.ts
+- [x] T012 [P] Contract test POST /api/breakout-rooms in tests/contract/test_breakout_create.test.ts
 
 ### Integration Tests
-- [ ] T013 [P] Integration test student lobby navigation in tests/integration/test_student_journey.test.ts
-- [ ] T014 [P] Integration test instructor classroom management in tests/integration/test_instructor_journey.test.ts
-- [ ] T015 [P] Integration test classroom capacity limits in tests/integration/test_capacity_limits.test.ts
-- [ ] T016 [P] Integration test multiple instructor scenario in tests/integration/test_multiple_instructors.test.ts
+- [x] T013 [P] Integration test student lobby navigation in tests/integration/test_student_journey.test.ts
+- [x] T014 [P] Integration test instructor classroom management in tests/integration/test_instructor_journey.test.ts
+- [x] T015 [P] Integration test classroom capacity limits in tests/integration/test_capacity_limits.test.ts
+- [x] T016 [P] Integration test multiple instructor scenario in tests/integration/test_multiple_instructors.test.ts
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 ### Type Definitions and Constants
-- [ ] T017 [P] Create TypeScript interfaces in lib/types.ts (AppUser, Classroom, ClassroomState, etc.)
-- [ ] T018 [P] Define Daily room configuration in lib/daily-config.ts (6 pre-defined room URLs)
-- [ ] T019 [P] Create app constants in lib/constants.ts (classroom names, capacity limits)
+- [x] T017 [P] Create TypeScript interfaces in lib/types.ts (AppUser, Classroom, ClassroomState, etc.)
+- [x] T018 [P] Define Daily room configuration in lib/daily-config.ts (6 pre-defined room URLs)
+- [x] T019 [P] Create app constants in lib/constants.ts (classroom names, capacity limits)
 
 ### Core Components
-- [ ] T020 [P] Create main Lobby component in app/components/Lobby.tsx with 6 classroom grid
-- [ ] T021 [P] Create Classroom component with DailyProvider in app/components/Classroom.tsx
-- [ ] T022 [P] Create VideoFeed component using Daily React hooks in app/components/VideoFeed.tsx
-- [ ] T023 [P] Create ParticipantList component using useParticipants() in app/components/ParticipantList.tsx
-- [ ] T024 [P] Create InstructorControls component in app/components/InstructorControls.tsx
-- [ ] T025 [P] Create shared UI components in app/components/ui/ (Button, Modal, etc.)
+- [x] T020 [P] Create main Lobby component in app/components/Lobby.tsx with 6 classroom grid
+- [x] T021 [P] Create Classroom component with DailyProvider in app/components/Classroom.tsx
+- [x] T022 [P] Create VideoFeed component using Daily React hooks in app/components/VideoFeed.tsx
+- [x] T023 [P] Create ParticipantList component using useParticipants() in app/components/ParticipantList.tsx
+- [x] T024 [P] Create InstructorControls component in app/components/InstructorControls.tsx
+- [x] T025 [P] Create shared UI components in app/components/ui/ (Button, Modal, etc.)
 
 ### Pages and Routing
 - [ ] T026 Main lobby page in app/page.tsx with Students/Instructors toggle
