@@ -42,11 +42,11 @@
 - **API Routes**: `app/api/` for Vercel serverless functions
 
 ## Phase 3.1: Setup
-- [ ] T001 Initialize Next.js project with TypeScript and required Daily dependencies
-- [ ] T002 [P] Configure Tailwind CSS v4 with futuristic black/teal theme
-- [ ] T003 [P] Set up ESLint, Prettier, and TypeScript configuration
-- [ ] T004 [P] Create project structure per implementation plan (app/, components/, lib/, tests/)
-- [ ] T005 [P] Configure environment variables for Daily.co API keys
+- [x] T001 Initialize Next.js project with TypeScript and required Daily dependencies
+- [x] T002 [P] Configure Tailwind CSS v4 with futuristic black/teal theme
+- [x] T003 [P] Set up ESLint, Prettier, and TypeScript configuration
+- [x] T004 [P] Create project structure per implementation plan (app/, components/, lib/, tests/)
+- [x] T005 [P] Configure environment variables for Daily.co API keys
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
