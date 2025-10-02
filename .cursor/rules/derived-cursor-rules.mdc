@@ -8,7 +8,12 @@ globs: *
 ## CODING STYLE & BEST PRACTICES
 
 *   Write clean and easy-to-read code.
-*   Focus on simplicity.
-*   Comment regularly.
-*   Assume the project will be read by relative newcomers to full-stack development.
-*   Where possible avoid creating excessive files. Rely on single files as much as possible.
+*   Focus on simplicity. Prioritize readability over cleverness.
+*   Comment regularly. Explain WHY decisions were made, especially for newcomers.
+*   Assume the project will be read by relative newcomers to full-stack development. Architecture should be accessible to junior developers. Use clear naming, avoid jargon, and explain complex patterns.
+*   Where possible avoid creating excessive files. Rely on single files as much as possible. Minimize file count without sacrificing clarity. Keep related functionality together, avoid unnecessary splits.
+*   Tests as living documentation. Test names and structure should teach how features work.
+*   Favor straightforward solutions that newcomers can understand.
+*   When simple solutions won't work, justify complexity.
+*   When writing commit messages, ensure they are clear and educational.
+*   Based on Overcast Constitution v1.0.0 (ratified 2025-10-02)

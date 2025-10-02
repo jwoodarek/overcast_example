@@ -1,0 +1,10 @@
+
+## <headers/>
+
+## CODING STYLE & BEST PRACTICES
+
+*   Write clean and easy-to-read code.
+*   Focus on simplicity.
+*   Comment regularly.
+*   Assume the project will be read by relative newcomers to full-stack development.
+*   Where possible avoid creating excessive files. Rely on single files as much as possible.

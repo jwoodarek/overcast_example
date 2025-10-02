@@ -1,0 +1,39 @@
+# overcast Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-10-02
+
+## Active Technologies
+- TypeScript 5.x with Next.js 15.5.4 + @daily-co/daily-react, @daily-co/daily-js, jotai, tailwindcss (001-we-are-looking)
+- TypeScript/JavaScript with Next.js 15.5.4, React 19.1.0 + Daily Video API (@daily-co/daily-js, @daily-co/daily-react), Next.js, Tailwind CSS v4, Vercel serverless functions (002-we-are-looking)
+- N/A (using pre-defined Daily URLs, no database for local development) (002-we-are-looking)
+- TypeScript/JavaScript with Next.js 15.5.4, React 19.1.0 + Daily Video API (@daily-co/daily-react, @daily-co/daily-js, jotai), Next.js, Tailwind CSS v4, Vercel serverless functions (002-we-are-looking)
+
+## Project Structure
+```
+src/
+tests/
+```
+
+## Commands
+npm test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] npm run lint
+
+## Code Style
+*Based on Overcast Constitution v1.0.0*
+
+### Universal Principles
+- **Simplicity First**: Choose the most straightforward solution that works
+- **Single File Preference**: Keep related functionality together, avoid unnecessary splits
+- **Comment-Driven**: Explain WHY decisions were made, especially for newcomers
+- **Newcomer-Friendly**: Use clear naming, avoid jargon, explain complex patterns
+- **Educational Tests**: Test names and structure should teach how features work
+
+### Language-Specific Guidelines
+[EXTRACTED FROM ACTIVE TECHNOLOGIES - TYPESCRIPT/JAVASCRIPT FOR NEXT.JS]
+
+## Recent Changes
+- 002-we-are-looking: Added TypeScript/JavaScript with Next.js 15.5.4, React 19.1.0 + Daily Video API (@daily-co/daily-react, @daily-co/daily-js, jotai), Next.js, Tailwind CSS v4, Vercel serverless functions
+- 002-we-are-looking: Added TypeScript/JavaScript with Next.js 15.5.4, React 19.1.0 + Daily Video API (@daily-co/daily-js, @daily-co/daily-react), Next.js, Tailwind CSS v4, Vercel serverless functions
+- 001-we-are-looking: Added TypeScript 5.x with Next.js 15.5.4 + @daily-co/daily-react, @daily-co/daily-js, jotai, tailwindcss
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
