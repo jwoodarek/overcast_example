@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "rules": {
+    // Overcast Constitution: Comment-Driven Development
+    "spaced-comment": ["error", "always"],
+    
+    // Overcast Constitution: Newcomer-Friendly Architecture
+    "prefer-const": "error",
+    "no-var": "error",
+    
+    // Daily.co integration best practices
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    
+    // React/Next.js best practices
+    "react-hooks/exhaustive-deps": "warn",
+    "react/jsx-key": "error",
+    
+    // Accessibility for video classroom
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-props": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}
