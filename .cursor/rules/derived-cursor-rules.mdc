@@ -21,3 +21,4 @@ globs: *
 ## WORKFLOW & RELEASE RULES
 
 *   Pay close attention to task dependencies. Tasks marked with [P] can run in parallel *within their group*. Respect the dependency relationship between groups of tasks. For example, type definitions and constants must be created before components that rely on them.
+*   When implementing tasks, mark the task off as [X] in the tasks file.

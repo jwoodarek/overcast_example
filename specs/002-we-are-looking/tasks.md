@@ -82,25 +82,25 @@
 - [x] T025 [P] Create shared UI components in app/components/ui/ (Button, Modal, etc.)
 
 ### Pages and Routing
-- [ ] T026 Main lobby page in app/page.tsx with Students/Instructors toggle
-- [ ] T027 Dynamic classroom pages in app/classroom/[id]/page.tsx
-- [ ] T028 Root layout with branding in app/layout.tsx
+- [x] T026 Main lobby page in app/page.tsx with Students/Instructors toggle
+- [x] T027 Dynamic classroom pages in app/classroom/[id]/page.tsx
+- [x] T028 Root layout with branding in app/layout.tsx
 
 ### API Routes (Vercel Serverless Functions)
-- [ ] T029 GET /api/rooms endpoint in app/api/rooms/route.ts
-- [ ] T030 GET /api/rooms/[roomId] endpoint in app/api/rooms/[roomId]/route.ts
-- [ ] T031 POST /api/rooms/[roomId]/join endpoint in app/api/rooms/[roomId]/join/route.ts
-- [ ] T032 POST /api/rooms/[roomId]/leave endpoint in app/api/rooms/[roomId]/leave/route.ts
-- [ ] T033 POST /api/participants/[sessionId]/mute endpoint in app/api/participants/[sessionId]/mute/route.ts
-- [ ] T034 POST /api/participants/mute-all endpoint in app/api/participants/mute-all/route.ts
+- [x] T029 GET /api/rooms endpoint in app/api/rooms/route.ts
+- [x] T030 GET /api/rooms/[roomId] endpoint in app/api/rooms/[roomId]/route.ts
+- [x] T031 POST /api/rooms/[roomId]/join endpoint in app/api/rooms/[roomId]/join/route.ts
+- [x] T032 POST /api/rooms/[roomId]/leave endpoint in app/api/rooms/[roomId]/leave/route.ts
+- [x] T033 POST /api/participants/[sessionId]/mute endpoint in app/api/participants/[sessionId]/mute/route.ts
+- [x] T034 POST /api/participants/mute-all endpoint in app/api/participants/mute-all/route.ts
 
 ## Phase 3.4: Integration
-- [ ] T035 Integrate Daily.co API with error handling and connection management
-- [ ] T036 Implement participant state management using Daily React hooks
-- [ ] T037 Add classroom capacity validation and "full" messaging
-- [ ] T038 Implement instructor privilege validation and controls
-- [ ] T039 Add real-time participant updates using useParticipants() events
-- [ ] T040 Implement role-based UI rendering (student vs instructor modes)
+- [x] T035 Integrate Daily.co API with error handling and connection management
+- [x] T036 Implement participant state management using Daily React hooks
+- [x] T037 Add classroom capacity validation and "full" messaging
+- [x] T038 Implement instructor privilege validation and controls
+- [x] T039 Add real-time participant updates using useParticipants() events
+- [x] T040 Implement role-based UI rendering (student vs instructor modes)
 
 ## Phase 3.5: Styling and UX
 - [ ] T041 [P] Implement futuristic black/teal theme in app/globals.css

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DAILY_ROOMS } from '@/lib/daily-config';
 import { UI_CONSTANTS } from '@/lib/constants';
 import { Classroom, AppUser } from '@/lib/types';
+import { isClassroomFull, getCapacityStatus, validateUserName } from '@/lib/daily-utils';
 
 interface LobbyProps {
   onJoinClassroom: (classroomId: string, user: AppUser) => void;
@@ -22,7 +23,9 @@ interface ClassroomCardProps {
  * Shows classroom info and join button with capacity status
  */
 function ClassroomCard({ classroom, participantCount, isActive, onJoin, disabled }: ClassroomCardProps) {
-  const isFull = participantCount >= classroom.maxCapacity;
+  // Use centralized capacity utilities from daily-utils
+  const isFull = isClassroomFull(participantCount, classroom.maxCapacity);
+  const capacityStatus = getCapacityStatus(participantCount, classroom.maxCapacity);
   const capacityPercentage = (participantCount / classroom.maxCapacity) * 100;
   
   return (
@@ -80,10 +83,10 @@ function UserForm({ onSubmit, disabled }: UserFormProps) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (name.trim().length > 50) {
-      newErrors.name = 'Name must be 50 characters or less';
+    // Use centralized name validation from daily-utils
+    const nameValidation = validateUserName(name);
+    if (!nameValidation.valid) {
+      newErrors.name = nameValidation.error || 'Invalid name';
     }
     
     setErrors(newErrors);
@@ -226,6 +229,22 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
 
   const handleJoinClassroom = async (classroomId: string) => {
     if (!user) return;
+
+    // Find the selected classroom
+    const classroom = classrooms.find(c => c.id === classroomId);
+    if (!classroom) {
+      console.error('Classroom not found:', classroomId);
+      return;
+    }
+
+    // Get current participant count for capacity validation
+    const state = classroomStates[classroomId] || { participantCount: 0, isActive: false };
+    
+    // Validate capacity before attempting to join
+    if (isClassroomFull(state.participantCount, classroom.maxCapacity)) {
+      alert(`Classroom "${classroom.name}" is full. Please try another classroom.`);
+      return;
+    }
 
     setIsLoading(true);
     setSelectedClassroom(classroomId);

@@ -6,6 +6,14 @@ import { DailyCall } from '@daily-co/daily-js';
 import { AppUser, Classroom, ConnectionState } from '@/lib/types';
 import { DAILY_CONFIG, UI_CONSTANTS } from '@/lib/constants';
 import { getDailyRoomById } from '@/lib/daily-config';
+import { 
+  parseDailyError, 
+  retryWithBackoff, 
+  hasInstructorPermissions,
+  getParticipantCountByRole,
+  safelyLeaveCall 
+} from '@/lib/daily-utils';
+import InstructorControls from './InstructorControls';
 
 interface ClassroomProps {
   classroomId: string;
@@ -190,7 +198,10 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
 
     } catch (err) {
       console.error('Failed to join Daily room:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect to classroom');
+      
+      // Use enhanced error parsing from daily-utils
+      const parsedError = parseDailyError(err);
+      setError(parsedError.message);
       setConnectionState('error');
     } finally {
       setIsJoining(false);
@@ -248,13 +259,8 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
 
   // Handle leaving the classroom
   const handleLeave = useCallback(async () => {
-    if (daily) {
-      try {
-        await daily.leave();
-      } catch (err) {
-        console.error('Error leaving Daily room:', err);
-      }
-    }
+    // Use safe leave utility to ensure proper cleanup
+    await safelyLeaveCall(daily);
     onLeave();
   }, [daily, onLeave]);
 
@@ -291,19 +297,36 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
 
         {/* Connected State - Video Grid Placeholder */}
         {connectionState === 'connected' && !error && (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-teal-400 text-6xl mb-4">📹</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Video Feed Coming Soon</h2>
-              <p className="text-gray-400 mb-4">
-                Connected to {classroom.name} with {Object.keys(participants).length} participants
-              </p>
-              <div className="text-sm text-gray-500">
-                <p>Local participant: {localParticipant?.user_name || 'Unknown'}</p>
-                <p>Audio: {localParticipant?.audio ? 'On' : 'Off'}</p>
-                <p>Video: {localParticipant?.video ? 'On' : 'Off'}</p>
+          <div className="h-full flex flex-col">
+            {/* Main Video Area */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-teal-400 text-6xl mb-4">📹</div>
+                <h2 className="text-2xl font-bold text-white mb-4">Video Feed Coming Soon</h2>
+                <p className="text-gray-400 mb-4">
+                  Connected to {classroom.name} with {Object.keys(participants).length} participants
+                </p>
+                <div className="text-sm text-gray-500">
+                  <p>Local participant: {localParticipant?.user_name || 'Unknown'}</p>
+                  <p>Audio: {localParticipant?.audio ? 'On' : 'Off'}</p>
+                  <p>Video: {localParticipant?.video ? 'On' : 'Off'}</p>
+                  <p className="mt-2">
+                    Role: {user.role === 'instructor' ? '👨‍🏫 Instructor' : '👨‍🎓 Student'}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {/* Instructor Controls - Only visible for instructors (T040: Role-based UI) */}
+            {user.role === 'instructor' && localParticipant && hasInstructorPermissions(localParticipant) && (
+              <div className="border-t border-gray-700 p-4 bg-gray-900">
+                <InstructorControls
+                  instructor={user}
+                  classroomId={classroomId}
+                  enabled={true}
+                />
+              </div>
+            )}
           </div>
         )}
 
