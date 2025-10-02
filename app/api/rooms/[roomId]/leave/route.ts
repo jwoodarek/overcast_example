@@ -20,9 +20,9 @@ import { getDailyRoomById } from '@/lib/daily-config';
 import { LeaveRoomRequest } from '@/lib/types';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     roomId: string;
-  };
+  }>;
 }
 
 /**
@@ -36,7 +36,7 @@ function isValidUUID(uuid: string): boolean {
 
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     // Validate room ID
     if (!roomId || !['1', '2', '3', '4', '5', '6'].includes(roomId)) {

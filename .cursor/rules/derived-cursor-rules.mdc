@@ -17,11 +17,17 @@ globs: *
 *   When simple solutions won't work, justify complexity.
 *   When writing commit messages, ensure they are clear and educational.
 *   Based on Overcast Constitution v1.0.0 (ratified 2025-10-02)
+*   **Typescript:** Avoid using `any` type. Specify a more specific type whenever possible. If a variable is intentionally unused, consider prefixing it with an underscore (`_`) or commenting out the line to avoid ESLint errors. When handling Daily.co event types, be flexible and consider using `unknown` with type assertions to accommodate varying event structures.
 
 ## WORKFLOW & RELEASE RULES
 
 *   Pay close attention to task dependencies. Tasks marked with [P] can run in parallel *within their group*. Respect the dependency relationship between groups of tasks. For example, type definitions and constants must be created before components that rely on them.
 *   When implementing tasks, mark the task off as [X] in the tasks file.
+*   When encountering build errors, address them systematically:
+    *   Start by resolving TypeScript and ESLint errors.
+    *   Address type mismatches with precise type definitions or `unknown` with type assertions.
+    *   Be mindful of Next.js version updates that may change API route handler signatures (e.g., Next.js 15 requires `await params` in dynamic routes).
+    *   If Turbopack causes issues, try building with standard Next.js build (`npx next build`).
 
 ## DEBUGGING
 

@@ -20,9 +20,9 @@ import { MuteParticipantRequest } from '@/lib/types';
 import { DAILY_API_CONFIG } from '@/lib/daily-config';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     sessionId: string;
-  };
+  }>;
 }
 
 /**
@@ -97,7 +97,7 @@ async function muteParticipantInDaily(
 
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { sessionId } = params;
+    const { sessionId } = await params;
 
     // Validate target session ID format
     if (!sessionId || !isValidUUID(sessionId)) {

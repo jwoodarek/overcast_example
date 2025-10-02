@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { DAILY_ROOMS } from '@/lib/daily-config';
 import { UI_CONSTANTS } from '@/lib/constants';
 import { Classroom, AppUser } from '@/lib/types';
-import { isClassroomFull, getCapacityStatus, validateUserName } from '@/lib/daily-utils';
+import { isClassroomFull, validateUserName } from '@/lib/daily-utils';
 
 interface LobbyProps {
   onJoinClassroom: (classroomId: string, user: AppUser) => void;
@@ -25,7 +25,6 @@ interface ClassroomCardProps {
 function ClassroomCard({ classroom, participantCount, isActive, onJoin, disabled }: ClassroomCardProps) {
   // Use centralized capacity utilities from daily-utils
   const isFull = isClassroomFull(participantCount, classroom.maxCapacity);
-  const capacityStatus = getCapacityStatus(participantCount, classroom.maxCapacity);
   const capacityPercentage = (participantCount / classroom.maxCapacity) * 100;
   
   return (
@@ -196,7 +195,7 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
           const data = await response.json();
           const states: Record<string, { participantCount: number; isActive: boolean }> = {};
           
-          data.classrooms.forEach((classroom: any) => {
+          data.classrooms.forEach((classroom: { id: string; participantCount: number; isActive: boolean }) => {
             states[classroom.id] = {
               participantCount: classroom.participantCount,
               isActive: classroom.isActive
@@ -221,7 +220,7 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
     // Poll for updates every 5 seconds
     const interval = setInterval(fetchClassroomStates, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [classrooms]);
 
   const handleUserSubmit = (userData: Omit<AppUser, 'sessionId' | 'currentClassroom' | 'joinedAt'>) => {
     setUser(userData);

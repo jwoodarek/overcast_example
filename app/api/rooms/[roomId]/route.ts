@@ -15,9 +15,9 @@ import { NextResponse } from 'next/server';
 import { getDailyRoomById, DAILY_API_CONFIG } from '@/lib/daily-config';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     roomId: string;
-  };
+  }>;
 }
 
 /**
@@ -76,7 +76,7 @@ async function fetchDailyRoomDetails(roomUrl: string) {
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     // Validate room ID (must be 1-6)
     if (!roomId || !['1', '2', '3', '4', '5', '6'].includes(roomId)) {

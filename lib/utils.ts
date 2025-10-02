@@ -118,7 +118,7 @@ export function getTimeElapsed(startDate: Date): string {
  * @param wait - Wait time in milliseconds
  * @returns Debounced function
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -137,7 +137,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param jsonString - JSON string to parse
  * @returns Parsed object or null
  */
-export function safeJsonParse<T = any>(jsonString: string): T | null {
+export function safeJsonParse<T = unknown>(jsonString: string): T | null {
   try {
     return JSON.parse(jsonString);
   } catch {
@@ -213,7 +213,7 @@ export interface ErrorLogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: Error;
   userId?: string;
   sessionId?: string;
@@ -256,7 +256,7 @@ export class Logger {
     level: LogLevel,
     message: string,
     error?: Error,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): ErrorLogEntry {
     const entry: ErrorLogEntry = {
       level,
@@ -334,7 +334,7 @@ export class Logger {
    * Debug level logging
    * Use for detailed diagnostic information
    */
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     if (this.isDevelopment) {
       const entry = this.createLogEntry(LogLevel.DEBUG, message, undefined, context);
       this.log(entry);
@@ -345,7 +345,7 @@ export class Logger {
    * Info level logging
    * Use for general informational messages
    */
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     const entry = this.createLogEntry(LogLevel.INFO, message, undefined, context);
     this.log(entry);
   }
@@ -354,7 +354,7 @@ export class Logger {
    * Warning level logging
    * Use for recoverable issues that should be investigated
    */
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     const entry = this.createLogEntry(LogLevel.WARN, message, undefined, context);
     this.log(entry);
   }
@@ -363,7 +363,7 @@ export class Logger {
    * Error level logging
    * Use for errors that affect functionality but don't crash the app
    */
-  error(message: string, error?: Error, context?: Record<string, any>): void {
+  error(message: string, error?: Error, context?: Record<string, unknown>): void {
     const entry = this.createLogEntry(LogLevel.ERROR, message, error, context);
     this.log(entry);
   }
@@ -372,7 +372,7 @@ export class Logger {
    * Fatal level logging
    * Use for critical errors that require immediate attention
    */
-  fatal(message: string, error?: Error, context?: Record<string, any>): void {
+  fatal(message: string, error?: Error, context?: Record<string, unknown>): void {
     const entry = this.createLogEntry(LogLevel.FATAL, message, error, context);
     this.log(entry);
   }
@@ -437,7 +437,7 @@ export function formatError(error: Error, includeStack?: boolean): string {
 export async function safeExecute<T>(
   fn: () => Promise<T>,
   errorMessage: string = 'Operation failed',
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): Promise<{ success: true; data: T } | { success: false; error: Error }> {
   try {
     const data = await fn();

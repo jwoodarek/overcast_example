@@ -19,9 +19,9 @@ import { getDailyRoomById, DAILY_API_CONFIG } from '@/lib/daily-config';
 import { JoinRoomRequest, Participant } from '@/lib/types';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     roomId: string;
-  };
+  }>;
 }
 
 /**
@@ -107,7 +107,7 @@ async function checkRoomCapacity(roomUrl: string, maxCapacity: number): Promise<
 
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
 
     // Validate room ID
     if (!roomId || !['1', '2', '3', '4', '5', '6'].includes(roomId)) {

@@ -3,14 +3,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant } from '@daily-co/daily-react';
 import { DailyCall } from '@daily-co/daily-js';
-import { AppUser, Classroom, ConnectionState } from '@/lib/types';
-import { DAILY_CONFIG, UI_CONSTANTS } from '@/lib/constants';
+import { AppUser, ConnectionState, type Classroom } from '@/lib/types';
+import { UI_CONSTANTS } from '@/lib/constants';
 import { getDailyRoomById } from '@/lib/daily-config';
 import { 
   parseDailyError, 
-  retryWithBackoff, 
   hasInstructorPermissions,
-  getParticipantCountByRole,
   safelyLeaveCall 
 } from '@/lib/daily-utils';
 import InstructorControls from './InstructorControls';
@@ -156,31 +154,12 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
   
   console.log('[Classroom] Looking for classroom ID:', classroomId);
   console.log('[Classroom] Found config:', classroom);
-  
-  if (!classroom) {
-    console.error('[Classroom] No configuration found for ID:', classroomId);
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Classroom Not Found</h2>
-          <p className="text-gray-400 mb-6">The requested classroom could not be found.</p>
-          <button
-            onClick={onLeave}
-            className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors"
-          >
-            Return to Lobby
-          </button>
-        </div>
-      </div>
-    );
-  }
-  
-  console.log('[Classroom] Using Daily room URL:', classroom.url);
+  console.log('[Classroom] Using Daily room URL:', classroom?.url);
 
   // Join the Daily room
   const joinRoom = useCallback(async () => {
-    if (!daily) {
-      console.error('[joinRoom] Daily object not available');
+    if (!daily || !classroom) {
+      console.error('[joinRoom] Daily object or classroom not available');
       return;
     }
 
@@ -238,7 +217,7 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
     } finally {
       setIsJoining(false);
     }
-  }, [daily, classroom.url, user.name, user.role, user.sessionId]);
+  }, [daily, classroom, user.name, user.role, user.sessionId]);
 
   // Handle Daily events
   useEffect(() => {
@@ -256,21 +235,24 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
       setConnectionState('disconnected');
     };
 
-    const handleError = (event: any) => {
+    const handleError = (event: unknown) => {
+      const err = event as { errorMsg?: string };
       console.error('[Daily Event] Error occurred:', event);
-      console.error('[Daily Event] Error message:', event.errorMsg);
+      console.error('[Daily Event] Error message:', err.errorMsg);
       console.error('[Daily Event] Full error details:', JSON.stringify(event, null, 2));
-      setError(event.errorMsg || 'Connection error occurred');
+      setError(err.errorMsg || 'Connection error occurred');
       setConnectionState('error');
       setIsJoining(false);
     };
 
-    const handleParticipantJoined = (event: any) => {
-      console.log('[Daily Event] Participant joined:', event.participant);
+    const handleParticipantJoined = (event: unknown) => {
+      const evt = event as { participant?: unknown };
+      console.log('[Daily Event] Participant joined:', evt.participant);
     };
 
-    const handleParticipantLeft = (event: any) => {
-      console.log('[Daily Event] Participant left:', event.participant);
+    const handleParticipantLeft = (event: unknown) => {
+      const evt = event as { participant?: unknown };
+      console.log('[Daily Event] Participant left:', evt.participant);
     };
 
     // Subscribe to Daily events
@@ -314,6 +296,25 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
     
     onLeave();
   }, [daily, onLeave]);
+
+  // Early return if classroom not found (after all hooks)
+  if (!classroom) {
+    console.error('[Classroom] No configuration found for ID:', classroomId);
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Classroom Not Found</h2>
+          <p className="text-gray-400 mb-6">The requested classroom could not be found.</p>
+          <button
+            onClick={onLeave}
+            className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Return to Lobby
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Convert classroom config to Classroom interface
   const classroomData: Classroom = {
@@ -448,12 +449,7 @@ export default function Classroom({ classroomId, user, onLeave }: ClassroomProps
           const call = Daily.createCallObject({
             // Apply configuration from constants
             audioSource: true,
-            videoSource: true,
-            dailyConfig: {
-              experimentalChromeVideoMuteLightOff: true,
-              // Apply audio settings from config
-              ...DAILY_CONFIG.audioSettings
-            }
+            videoSource: true
           });
 
           console.log('[Daily] Call object created successfully');
