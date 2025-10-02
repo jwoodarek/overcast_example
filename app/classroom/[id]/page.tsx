@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import Classroom from '@/app/components/Classroom';
 import { AppUser } from '@/lib/types';
 
@@ -25,9 +25,14 @@ function LoadingClassroom() {
  * Classroom page content component
  * Separated to allow Suspense boundary for useSearchParams()
  */
-function ClassroomPageContent({ params }: { params: { id: string } }) {
+function ClassroomPageContent({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Unwrap the params Promise using React.use()
+  // WHY: Next.js 15+ wraps dynamic route params in a Promise for better streaming support.
+  // React.use() suspends the component until the params are available.
+  const { id } = use(params);
 
   // Extract user data from URL parameters
   // WHY: We pass user data via URL params from the lobby page.
@@ -42,7 +47,7 @@ function ClassroomPageContent({ params }: { params: { id: string } }) {
     name: userName,
     role: userRole,
     sessionId: sessionId,
-    currentClassroom: params.id,
+    currentClassroom: id,
     joinedAt: new Date()
   };
 
@@ -62,7 +67,7 @@ function ClassroomPageContent({ params }: { params: { id: string } }) {
 
   return (
     <Classroom 
-      classroomId={params.id}
+      classroomId={id}
       user={user}
       onLeave={handleLeaveClassroom}
     />
@@ -81,9 +86,9 @@ function ClassroomPageContent({ params }: { params: { id: string } }) {
  * 
  * User data is passed via URL search parameters from the lobby page.
  * 
- * @param params - Next.js dynamic route params containing classroom ID
+ * @param params - Next.js dynamic route params containing classroom ID (Promise in Next.js 15+)
  */
-export default function ClassroomPage({ params }: { params: { id: string } }) {
+export default function ClassroomPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense fallback={<LoadingClassroom />}>
       <ClassroomPageContent params={params} />

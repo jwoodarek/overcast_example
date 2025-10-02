@@ -7,7 +7,7 @@ React components for the Overcast video classroom application, built with Daily.
 - `Lobby.tsx` - Main lobby with 6 classroom grid
 - `Classroom.tsx` - Classroom video component with DailyProvider wrapper
 - `VideoFeed.tsx` - Daily video integration using React hooks
-- `ParticipantList.tsx` - Participant display using useParticipants() hook
+- `ParticipantList.tsx` - Participant display using useParticipantIds() hook
 - `InstructorControls.tsx` - Instructor-specific controls (mute, breakout rooms)
 - `ui/` - Shared UI components (buttons, modals, etc.)
 
@@ -16,7 +16,7 @@ React components for the Overcast video classroom application, built with Daily.
 Components use Daily React hooks for video functionality:
 
 ```typescript
-import { useParticipants, useDevices, useScreenShare } from '@daily-co/daily-react';
+import { useParticipantIds, useDaily, useDevices, useScreenShare } from '@daily-co/daily-react';
 ```
 
 ## Design System

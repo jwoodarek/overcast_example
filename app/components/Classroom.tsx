@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { DailyProvider, useDaily, useParticipants, useLocalParticipant } from '@daily-co/daily-react';
+import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant } from '@daily-co/daily-react';
 import { DailyCall } from '@daily-co/daily-js';
 import { AppUser, Classroom, ConnectionState } from '@/lib/types';
 import { DAILY_CONFIG, UI_CONSTANTS } from '@/lib/constants';
@@ -14,6 +14,13 @@ import {
   safelyLeaveCall 
 } from '@/lib/daily-utils';
 import InstructorControls from './InstructorControls';
+import VideoFeed from './VideoFeed';
+
+// Module-level singleton to prevent duplicate Daily instances
+// WHY: React strict mode causes effects to run twice, which creates duplicate Daily iframes
+// This singleton ensures only one instance exists at a time across all component mounts
+let dailyCallSingleton: DailyCall | null = null;
+let initializationPromise: Promise<DailyCall> | null = null;
 
 interface ClassroomProps {
   classroomId: string;
@@ -137,7 +144,7 @@ function ErrorDisplay({ error, onRetry }: { error: string; onRetry: () => void }
  */
 function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps) {
   const daily = useDaily();
-  const participants = useParticipants();
+  const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
   
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
@@ -147,7 +154,11 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
   // Get classroom configuration
   const classroom = getDailyRoomById(classroomId);
   
+  console.log('[Classroom] Looking for classroom ID:', classroomId);
+  console.log('[Classroom] Found config:', classroom);
+  
   if (!classroom) {
+    console.error('[Classroom] No configuration found for ID:', classroomId);
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
@@ -163,15 +174,27 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
       </div>
     );
   }
+  
+  console.log('[Classroom] Using Daily room URL:', classroom.url);
 
   // Join the Daily room
   const joinRoom = useCallback(async () => {
-    if (!daily) return;
+    if (!daily) {
+      console.error('[joinRoom] Daily object not available');
+      return;
+    }
 
     try {
       setIsJoining(true);
       setError(null);
       setConnectionState('connecting');
+
+      console.log('[joinRoom] Attempting to join room:', {
+        url: classroom.url,
+        userName: user.name,
+        role: user.role,
+        sessionId: user.sessionId
+      });
 
       // Configure Daily call with user settings
       await daily.join({
@@ -182,6 +205,8 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
           sessionId: user.sessionId
         }
       });
+      
+      console.log('[joinRoom] Join request completed successfully');
 
       // Apply audio/video settings from config
       await daily.setLocalAudio(true);
@@ -197,10 +222,17 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
       });
 
     } catch (err) {
-      console.error('Failed to join Daily room:', err);
+      console.error('[joinRoom] Failed to join Daily room:', err);
+      console.error('[joinRoom] Room URL that failed:', classroom.url);
+      console.error('[joinRoom] Error details:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
+      });
       
       // Use enhanced error parsing from daily-utils
       const parsedError = parseDailyError(err);
+      console.error('[joinRoom] Parsed error:', parsedError);
       setError(parsedError.message);
       setConnectionState('error');
     } finally {
@@ -213,28 +245,32 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
     if (!daily) return;
 
     const handleJoinedMeeting = () => {
+      console.log('[Daily Event] Joined meeting successfully');
       setConnectionState('connected');
       setError(null);
       setIsJoining(false);
     };
 
     const handleLeftMeeting = () => {
+      console.log('[Daily Event] Left meeting');
       setConnectionState('disconnected');
     };
 
     const handleError = (event: any) => {
-      console.error('Daily error:', event);
+      console.error('[Daily Event] Error occurred:', event);
+      console.error('[Daily Event] Error message:', event.errorMsg);
+      console.error('[Daily Event] Full error details:', JSON.stringify(event, null, 2));
       setError(event.errorMsg || 'Connection error occurred');
       setConnectionState('error');
       setIsJoining(false);
     };
 
     const handleParticipantJoined = (event: any) => {
-      console.log('Participant joined:', event.participant);
+      console.log('[Daily Event] Participant joined:', event.participant);
     };
 
     const handleParticipantLeft = (event: any) => {
-      console.log('Participant left:', event.participant);
+      console.log('[Daily Event] Participant left:', event.participant);
     };
 
     // Subscribe to Daily events
@@ -259,8 +295,23 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
 
   // Handle leaving the classroom
   const handleLeave = useCallback(async () => {
+    console.log('[Daily] Leaving classroom, destroying singleton...');
+    
     // Use safe leave utility to ensure proper cleanup
     await safelyLeaveCall(daily);
+    
+    // Destroy the singleton instance
+    if (dailyCallSingleton) {
+      try {
+        dailyCallSingleton.destroy();
+        console.log('[Daily] Singleton destroyed successfully');
+      } catch (e) {
+        console.error('[Daily] Error destroying singleton:', e);
+      }
+      dailyCallSingleton = null;
+      initializationPromise = null;
+    }
+    
     onLeave();
   }, [daily, onLeave]);
 
@@ -277,7 +328,7 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
       {/* Header */}
       <ClassroomHeader
         classroom={classroomData}
-        participantCount={Object.keys(participants).length}
+        participantCount={participantIds.length}
         connectionState={connectionState}
         user={user}
         onLeave={handleLeave}
@@ -295,26 +346,17 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
           <ErrorDisplay error={error} onRetry={joinRoom} />
         )}
 
-        {/* Connected State - Video Grid Placeholder */}
+        {/* Connected State - Video Grid */}
         {connectionState === 'connected' && !error && (
           <div className="h-full flex flex-col">
             {/* Main Video Area */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-teal-400 text-6xl mb-4">📹</div>
-                <h2 className="text-2xl font-bold text-white mb-4">Video Feed Coming Soon</h2>
-                <p className="text-gray-400 mb-4">
-                  Connected to {classroom.name} with {Object.keys(participants).length} participants
-                </p>
-                <div className="text-sm text-gray-500">
-                  <p>Local participant: {localParticipant?.user_name || 'Unknown'}</p>
-                  <p>Audio: {localParticipant?.audio ? 'On' : 'Off'}</p>
-                  <p>Video: {localParticipant?.video ? 'On' : 'Off'}</p>
-                  <p className="mt-2">
-                    Role: {user.role === 'instructor' ? '👨‍🏫 Instructor' : '👨‍🎓 Student'}
-                  </p>
-                </div>
-              </div>
+            <div className="flex-1 p-4 overflow-auto bg-gray-950">
+              <VideoFeed 
+                showLocalVideo={true}
+                showRemoteParticipants={true}
+                maxParticipants={12}
+                className="h-full"
+              />
             </div>
 
             {/* Instructor Controls - Only visible for instructors (T040: Role-based UI) */}
@@ -365,38 +407,82 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
  */
 export default function Classroom({ classroomId, user, onLeave }: ClassroomProps) {
   const [dailyCall, setDailyCall] = useState<DailyCall | null>(null);
+  const callRef = React.useRef<DailyCall | null>(null);
 
-  // Initialize Daily call object
+  // Initialize Daily call object using module-level singleton
   useEffect(() => {
+    let mounted = true;
+
     const initializeDaily = async () => {
       try {
-        // Dynamic import to avoid SSR issues
-        const Daily = (await import('@daily-co/daily-js')).default;
+        console.log('[Daily] Checking for existing singleton...');
         
-        const call = Daily.createCallObject({
-          // Apply configuration from constants
-          audioSource: true,
-          videoSource: true,
-          dailyConfig: {
-            experimentalChromeVideoMuteLightOff: true,
-            // Apply audio settings from config
-            ...DAILY_CONFIG.audioSettings
+        // If singleton already exists and is valid, reuse it
+        if (dailyCallSingleton) {
+          console.log('[Daily] Reusing existing singleton instance');
+          if (mounted) {
+            callRef.current = dailyCallSingleton;
+            setDailyCall(dailyCallSingleton);
           }
-        });
+          return;
+        }
 
-        setDailyCall(call);
+        // If initialization is already in progress, wait for it
+        if (initializationPromise) {
+          console.log('[Daily] Waiting for ongoing initialization...');
+          const call = await initializationPromise;
+          if (mounted) {
+            callRef.current = call;
+            setDailyCall(call);
+          }
+          return;
+        }
+
+        // Start new initialization
+        console.log('[Daily] Starting new initialization...');
+        initializationPromise = (async () => {
+          // Dynamic import to avoid SSR issues
+          const Daily = (await import('@daily-co/daily-js')).default;
+          
+          console.log('[Daily] Creating call object...');
+          const call = Daily.createCallObject({
+            // Apply configuration from constants
+            audioSource: true,
+            videoSource: true,
+            dailyConfig: {
+              experimentalChromeVideoMuteLightOff: true,
+              // Apply audio settings from config
+              ...DAILY_CONFIG.audioSettings
+            }
+          });
+
+          console.log('[Daily] Call object created successfully');
+          dailyCallSingleton = call;
+          return call;
+        })();
+
+        const call = await initializationPromise;
+        
+        // Only set state if component is still mounted
+        if (mounted) {
+          callRef.current = call;
+          setDailyCall(call);
+        }
       } catch (error) {
-        console.error('Failed to initialize Daily:', error);
+        console.error('[Daily] Failed to initialize:', error);
+        initializationPromise = null;
       }
     };
 
     initializeDaily();
 
-    // Cleanup
+    // Cleanup function - don't destroy singleton, just clear local ref
     return () => {
-      if (dailyCall) {
-        dailyCall.destroy();
-      }
+      console.log('[Daily] Component unmounting, clearing local ref');
+      mounted = false;
+      callRef.current = null;
+      // Note: We DON'T destroy the singleton here because other components might be using it
+      // The singleton will be destroyed when the user leaves the classroom page
     };
   }, []);
 

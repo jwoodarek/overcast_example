@@ -1,10 +1,10 @@
 'use client';
 
-// ParticipantList component using useParticipants() hook
+// ParticipantList component using useParticipantIds() hook
 // Displays list of classroom participants with instructor controls
 
 import React from 'react';
-import { useParticipants, useLocalParticipant } from '@daily-co/daily-react';
+import { useParticipantIds, useDaily, useLocalParticipant } from '@daily-co/daily-react';
 import { DailyParticipant } from '@daily-co/daily-js';
 import { AppUser } from '@/lib/types';
 
@@ -29,7 +29,8 @@ interface ParticipantListProps {
  * Provides instructor controls for muting participants.
  * 
  * Uses Daily React hooks:
- * - useParticipants(): Get all participants in the call
+ * - useParticipantIds(): Get all participant IDs in the call
+ * - useDaily(): Get Daily call object to access participant data
  * - useLocalParticipant(): Get local participant data for self-identification
  */
 export default function ParticipantList({
@@ -40,8 +41,18 @@ export default function ParticipantList({
   className = ''
 }: ParticipantListProps) {
   // Daily React hooks
-  const participants = useParticipants();
+  const participantIds = useParticipantIds();
+  const daily = useDaily();
   const localParticipant = useLocalParticipant();
+  
+  // Get all participant objects from the Daily call
+  const participants: DailyParticipant[] = React.useMemo(() => {
+    if (!daily) return [];
+    const allParticipants = daily.participants();
+    return participantIds
+      .map(id => allParticipants[id])
+      .filter((p): p is DailyParticipant => p !== undefined && p !== null);
+  }, [daily, participantIds]);
 
   // Check if current user is an instructor
   const isInstructor = currentUser?.role === 'instructor';

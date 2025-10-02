@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { 
-  useParticipants, 
+  useParticipantIds,
+  useDaily,
   useLocalParticipant,
   useDevices,
   useScreenShare,
@@ -32,7 +33,8 @@ interface VideoFeedProps {
  * Handles screen sharing display when active.
  * 
  * Uses Daily React hooks:
- * - useParticipants(): Get all participants in the call
+ * - useParticipantIds(): Get all participant IDs in the call
+ * - useDaily(): Get Daily call object to access participant data
  * - useLocalParticipant(): Get local participant data
  * - useScreenShare(): Handle screen sharing state
  * - useDevices(): Access camera/microphone devices
@@ -44,10 +46,20 @@ export default function VideoFeed({
   className = ''
 }: VideoFeedProps) {
   // Daily React hooks for participant management
-  const participants = useParticipants();
+  const participantIds = useParticipantIds();
+  const daily = useDaily();
   const localParticipant = useLocalParticipant();
   const { screens } = useScreenShare();
   const { cameras, microphones } = useDevices();
+
+  // Get all participant objects from the Daily call
+  const participants: DailyParticipant[] = React.useMemo(() => {
+    if (!daily) return [];
+    const allParticipants = daily.participants();
+    return participantIds
+      .map(id => allParticipants[id])
+      .filter((p): p is DailyParticipant => p !== undefined && p !== null);
+  }, [daily, participantIds]);
 
   // Filter participants for display
   const remoteParticipants = participants.filter(p => !p.local);

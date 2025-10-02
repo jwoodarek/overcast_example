@@ -36,7 +36,7 @@ export interface Classroom {
  */
 export interface ClassroomState {
   id: string;                      // Classroom identifier
-  participants: DailyParticipant[]; // From useParticipants() hook
+  participants: DailyParticipant[]; // From useParticipantIds() + daily.participants()
   participantCount: number;        // Derived from participants.length
   isActive: boolean;               // Derived from participantCount > 0
   instructors: DailyParticipant[]; // Filtered by role
@@ -87,8 +87,7 @@ export interface UseDailyConfig {
   videoSource?: boolean | string | MediaStreamTrack;
 }
 
-export interface UseParticipantsConfig {
-  onParticipantJoined?(participant: DailyParticipant): void;
+export interface UseParticipantConfig {
   onParticipantUpdated?(participant: DailyParticipant): void;
   onParticipantLeft?(participant: DailyParticipant): void;
 }

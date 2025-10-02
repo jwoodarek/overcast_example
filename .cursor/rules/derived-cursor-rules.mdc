@@ -22,3 +22,27 @@ globs: *
 
 *   Pay close attention to task dependencies. Tasks marked with [P] can run in parallel *within their group*. Respect the dependency relationship between groups of tasks. For example, type definitions and constants must be created before components that rely on them.
 *   When implementing tasks, mark the task off as [X] in the tasks file.
+
+## DEBUGGING
+
+*   When debugging Daily.co integration issues, utilize the following console logs in `app/components/Classroom.tsx`:
+    *   `[Daily] Already initialized, skipping duplicate`
+    *   `[Daily] Starting initialization...`
+    *   `[Daily] Creating call object...`
+    *   `[Daily] Call object created successfully`
+    *   `[Classroom] Looking for classroom ID: X`
+    *   `[Classroom] Found config: {...}`
+    *   `[Classroom] Using Daily room URL: https://...`
+    *   `[joinRoom] Attempting to join room: { url, userName, role, sessionId }`
+    *   `[joinRoom] Join request completed successfully`
+    *   `[joinRoom] Failed to join Daily room: ...`
+    *   `[joinRoom] Room URL that failed: ...`
+    *   `[joinRoom] Error details: {...}`
+    *   `[joinRoom] Parsed error: {...}`
+    *   `[Daily Event] Joined meeting successfully`
+    *   `[Daily Event] Left meeting`
+    *   `[Daily Event] Error occurred: ...`
+    *   `[Daily Event] Error message: ...`
+    *   `[Daily Event] Full error details: ...`
+    *   `[Daily Event] Participant joined: ...`
+    *   `[Daily Event] Participant left: ...`

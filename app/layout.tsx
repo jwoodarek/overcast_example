@@ -69,9 +69,35 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen flex flex-col`}
       >
-        {children}
+        <div className="flex-1">
+          {children}
+        </div>
+        
+        {/* Footer with Overclock Accelerator branding */}
+        <footer className="border-t border-gray-800 bg-black py-6 mt-auto">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              {/* Branding */}
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-[#00FFD1] animate-pulse"></div>
+                <p className="text-gray-300 text-sm">
+                  Powered by{' '}
+                  <span className="font-bold text-[#00FFD1] hover:text-[#00E6BC] transition-colors">
+                    the Overclock Accelerator
+                  </span>
+                </p>
+              </div>
+              
+              {/* Additional info */}
+              <div className="flex items-center gap-6 text-gray-500 text-xs">
+                <span>© {new Date().getFullYear()} Overcast</span>
+                <span className="hidden sm:inline">Video Classroom Platform</span>
+              </div>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );
