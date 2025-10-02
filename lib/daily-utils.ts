@@ -26,7 +26,7 @@ export enum DailyErrorType {
 export interface DailyError {
   type: DailyErrorType;
   message: string;
-  originalError?: any;
+  originalError?: Error | unknown;
   isRetryable: boolean;
 }
 
@@ -36,8 +36,9 @@ export interface DailyError {
  * WHY: Daily.co errors come in various formats. This function
  * normalizes them into a consistent structure for better UX.
  */
-export function parseDailyError(error: any): DailyError {
-  const errorMsg = error?.errorMsg || error?.message || String(error);
+export function parseDailyError(error: Error | unknown): DailyError {
+  const err = error as { errorMsg?: string; message?: string } | null | undefined;
+  const errorMsg = err?.errorMsg || err?.message || String(error);
   
   // Determine error type from message
   if (errorMsg.includes('permission') || errorMsg.includes('microphone') || errorMsg.includes('camera')) {
@@ -96,7 +97,7 @@ export async function retryWithBackoff<T>(
   maxAttempts: number = 3,
   initialDelay: number = 1000
 ): Promise<T> {
-  let lastError: any;
+  let lastError: Error | unknown;
   
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -133,7 +134,7 @@ export async function retryWithBackoff<T>(
  * provides type-safe access to role information.
  */
 export function getParticipantRole(participant: DailyParticipant): 'student' | 'instructor' {
-  const userData = participant.userData as any;
+  const userData = participant.userData as { role?: string } | undefined;
   return userData?.role === 'instructor' ? 'instructor' : 'student';
 }
 
@@ -247,8 +248,12 @@ export function validateUserName(name: string): { valid: boolean; error?: string
  */
 export type ConnectionQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'unknown';
 
+export interface NetworkStats {
+  quality?: number;
+}
+
 export function getConnectionQuality(
-  stats: any // Daily NetworkStats type
+  stats: NetworkStats | null | undefined
 ): ConnectionQuality {
   if (!stats) return 'unknown';
   

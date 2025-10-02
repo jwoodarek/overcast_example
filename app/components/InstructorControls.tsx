@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useParticipantIds, useDaily, useLocalParticipant } from '@daily-co/daily-react';
+import { useDaily } from '@daily-co/daily-react';
 import { DailyParticipant } from '@daily-co/daily-js';
 import { AppUser, MuteParticipantRequest, MuteAllParticipantsRequest, CreateBreakoutRoomRequest } from '@/lib/types';
 
@@ -31,9 +31,7 @@ export default function InstructorControls({
   enabled = true 
 }: InstructorControlsProps) {
   // Daily React hooks for participant management
-  const participantIds = useParticipantIds();
   const daily = useDaily();
-  const localParticipant = useLocalParticipant();
   
   // Get participants from Daily call object (fallback approach)
   const [participants, setParticipants] = useState<DailyParticipant[]>([]);

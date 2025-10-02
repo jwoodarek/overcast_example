@@ -50,7 +50,8 @@ export default function VideoFeed({
   const daily = useDaily();
   const localParticipant = useLocalParticipant();
   const { screens } = useScreenShare();
-  const { cameras, microphones } = useDevices();
+  // useDevices() available for future device selection features
+  useDevices();
 
   // Get all participant objects from the Daily call
   const participants: DailyParticipant[] = React.useMemo(() => {
@@ -77,7 +78,7 @@ export default function VideoFeed({
    */
   const renderParticipantVideo = (participant: DailyParticipant, isLocal = false) => {
     const participantName = participant.user_name || 'Anonymous';
-    const isInstructor = participant.userData?.role === 'instructor';
+    const isInstructor = (participant.userData as { role?: string } | undefined)?.role === 'instructor';
     
     return (
       <div 
@@ -131,7 +132,9 @@ export default function VideoFeed({
   const renderScreenShare = () => {
     if (!isScreenSharing || !screenShareParticipant) return null;
 
-    const sharerName = screenShareParticipant.user_name || 'Anonymous';
+    // Find the participant who is sharing to get their name
+    const sharingParticipant = participants.find(p => p.session_id === screenShareParticipant.session_id);
+    const sharerName = sharingParticipant?.user_name || 'Someone';
 
     return (
       <div className="col-span-full mb-4">

@@ -59,8 +59,8 @@ export default function ParticipantList({
   const canShowControls = showControls && isInstructor;
 
   // Separate participants by role
-  const instructors = participants.filter(p => p.userData?.role === 'instructor');
-  const students = participants.filter(p => p.userData?.role !== 'instructor');
+  const instructors = participants.filter(p => (p.userData as { role?: string } | undefined)?.role === 'instructor');
+  const students = participants.filter(p => (p.userData as { role?: string } | undefined)?.role !== 'instructor');
 
   // Count muted participants for "mute all" button state
   const mutedCount = participants.filter(p => p.audio === false).length;
@@ -87,10 +87,9 @@ export default function ParticipantList({
    */
   const renderParticipant = (participant: DailyParticipant, isLocal = false) => {
     const participantName = participant.user_name || 'Anonymous';
-    const isParticipantInstructor = participant.userData?.role === 'instructor';
+    const isParticipantInstructor = (participant.userData as { role?: string } | undefined)?.role === 'instructor';
     const isAudioMuted = participant.audio === false;
     const isVideoOff = participant.video === false;
-    const connectionState = participant.connectionState || 'connected';
 
     return (
       <div 
@@ -98,7 +97,6 @@ export default function ParticipantList({
         className={`
           flex items-center justify-between p-3 rounded-lg border
           ${isLocal ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}
-          ${connectionState !== 'connected' ? 'opacity-60' : ''}
         `}
       >
         {/* Participant info */}
@@ -107,7 +105,6 @@ export default function ParticipantList({
           <div className={`
             w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium
             ${isParticipantInstructor ? 'bg-teal-500' : 'bg-gray-500'}
-            ${connectionState !== 'connected' ? 'opacity-50' : ''}
           `}>
             {participantName.charAt(0).toUpperCase()}
           </div>
@@ -127,14 +124,11 @@ export default function ParticipantList({
               )}
             </div>
             
-            {/* Connection status */}
+            {/* Audio/Video status */}
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span className={`
-                w-2 h-2 rounded-full
-                ${connectionState === 'connected' ? 'bg-green-400' : 
-                  connectionState === 'connecting' ? 'bg-yellow-400' : 'bg-red-400'}
-              `} />
-              <span className="capitalize">{connectionState}</span>
+              {isAudioMuted && <span>🔇 Muted</span>}
+              {isVideoOff && <span>📹 Video off</span>}
+              {!isAudioMuted && !isVideoOff && <span className="text-green-600">Active</span>}
             </div>
           </div>
         </div>
@@ -166,7 +160,6 @@ export default function ParticipantList({
                   : 'bg-red-100 text-red-700 hover:bg-red-200'
                 }
               `}
-              disabled={connectionState !== 'connected'}
             >
               {isAudioMuted ? 'Unmute' : 'Mute'}
             </button>
@@ -260,9 +253,9 @@ export default function ParticipantList({
               <span className="font-medium">{mutedCount}</span>
             </div>
             <div className="flex justify-between">
-              <span>Connected:</span>
+              <span>Active participants:</span>
               <span className="font-medium">
-                {participants.filter(p => p.connectionState === 'connected').length}
+                {participants.length}
               </span>
             </div>
           </div>
