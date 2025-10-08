@@ -4,7 +4,6 @@ import React, { useState, useCallback } from 'react';
 import { useDaily } from '@daily-co/daily-react';
 import { DailyParticipant } from '@daily-co/daily-js';
 import { AppUser, MuteParticipantRequest, MuteAllParticipantsRequest } from '@/lib/types';
-import MediaControls from './MediaControls';
 import AlertPanel from './AlertPanel';
 
 interface InstructorControlsProps {
@@ -224,9 +223,6 @@ export default function InstructorControls({
           </button>
         </div>
       )}
-
-      {/* Personal Media Controls - WHY: Instructor needs quick access to their own mic/camera */}
-      <MediaControls enabled={enabled} />
 
       {/* Participant Count Summary */}
       <div className="text-sm text-gray-300 space-y-1">
