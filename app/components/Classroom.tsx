@@ -629,9 +629,9 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
             {/* Right Side Panel - Chat and optional Transcript Monitor */}
             <div className="w-96 border-l border-gray-700 bg-gray-900 flex flex-col">
               {/* Transcript Monitor - Only shown when transcription is active */}
-              {/* WHY max-h-64: Constrains transcript to reasonable size, prevents pushing chat off screen */}
+              {/* Resizable: Takes up to 40% of height, scrollable within */}
               {transcriptionActive && (
-                <div className="max-h-64 min-h-0 border-b border-gray-700 overflow-hidden">
+                <div className="flex-shrink-0 border-b border-gray-700 overflow-y-auto" style={{ maxHeight: '40vh' }}>
                   <TranscriptMonitor 
                     sessionId={`classroom-${classroomId}`}
                   />
@@ -639,8 +639,8 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
               )}
               
               {/* Chat Panel - Available to all participants */}
-              {/* WHY flex-1: Takes remaining space, ensures chat is always visible and usable */}
-              <div className="flex-1 min-h-0 p-4">
+              {/* Takes remaining space, scrollable within */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-4">
                 <ChatPanel
                   sessionId={user.sessionId}
                   userName={user.name}
