@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Add instructor authorization check
+    // Authorization: In production, validate instructor permissions
     // For MVP, we trust the instructorId from client
     // Future: validate against session/JWT to ensure user is actually an instructor
 

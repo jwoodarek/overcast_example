@@ -253,3 +253,250 @@ export class AlertStore {
   }
 }
 
+// ==============================================================================
+// NEW: Jotai Atoms for Help Alert System (Feature 004)
+// ==============================================================================
+
+/**
+ * Help Alert System Atoms
+ * 
+ * WHY separate from class-based AlertStore above:
+ * - AlertStore handles backend/API concern (alert detection and storage)
+ * - These atoms handle frontend/UI concern (instructor's view of alerts)
+ * - Atoms integrate better with React components (useAtom hook)
+ * - Allows gradual migration to Jotai pattern without breaking existing code
+ * 
+ * WHY Jotai for new features:
+ * - Simpler React integration (reactive updates)
+ * - Type-safe with TypeScript
+ * - Follows emerging pattern in codebase
+ * - Constitutional principle: favor simplicity over consistency (don't force everything into one pattern)
+ * 
+ * Usage:
+ * ```tsx
+ * const [helpAlerts] = useAtom(helpAlertsAtom);
+ * const pendingCount = useAtomValue(pendingAlertsAtom).length;
+ * ```
+ */
+
+import { atom } from 'jotai';
+
+/**
+ * Help Alert entity for instructor notification system
+ * 
+ * Matches data-model.md specification
+ * Different from existing HelpAlert type (which has different fields)
+ */
+export interface HelpAlertEntity {
+  /** Unique identifier (UUID) */
+  id: string;
+  
+  /** Participant session ID who needs help */
+  studentId: string;
+  
+  /** Display name for UI */
+  studentName: string;
+  
+  /** Where help is needed ('main' or breakout room ID) */
+  roomId: string;
+  
+  /** When alert was created */
+  timestamp: Date;
+  
+  /** Brief description of what student is struggling with (max 500 chars) */
+  issueSummary: string;
+  
+  /** Alert lifecycle state */
+  status: 'pending' | 'acknowledged' | 'dismissed';
+  
+  /** When instructor viewed/acknowledged (optional) */
+  acknowledgedAt?: Date;
+}
+
+/**
+ * Primary help alerts atom
+ * 
+ * WHY array instead of Map:
+ * - Small dataset (typically <20 active alerts)
+ * - Need to maintain order (newest/highest priority first)
+ * - Simple iteration in UI components
+ * - Easy filtering by status/room
+ * 
+ * Alert lifecycle:
+ * 1. System detects student needs help → add alert with status: 'pending'
+ * 2. Instructor views alert modal → update status: 'acknowledged', set acknowledgedAt
+ * 3. Instructor dismisses alert → update status: 'dismissed'
+ * 4. Session ends → clear all alerts
+ * 
+ * Memory: ~300 bytes per alert × 20 alerts = 6 KB (negligible)
+ * 
+ * Usage:
+ * ```tsx
+ * const [helpAlerts, setHelpAlerts] = useAtom(helpAlertsAtom);
+ * 
+ * // Add new alert
+ * setHelpAlerts(prev => [...prev, newAlert]);
+ * 
+ * // Update status
+ * setHelpAlerts(prev => prev.map(alert =>
+ *   alert.id === alertId
+ *     ? { ...alert, status: 'acknowledged', acknowledgedAt: new Date() }
+ *     : alert
+ * ));
+ * 
+ * // Remove dismissed alerts
+ * setHelpAlerts(prev => prev.filter(alert => alert.status !== 'dismissed'));
+ * ```
+ */
+export const helpAlertsAtom = atom<HelpAlertEntity[]>([]);
+
+/**
+ * Derived atom: Pending alerts only
+ * 
+ * WHY important:
+ * - Instructor needs to see unacknowledged alerts prominently
+ * - Badge count: "3 students need help"
+ * - Priority indicator for modal display
+ * - Most common filter (acknowledged alerts less urgent)
+ * 
+ * WHY derived:
+ * - Single source of truth (helpAlertsAtom)
+ * - Can't get out of sync
+ * - Automatically updates when helpAlertsAtom changes
+ * 
+ * Sorted by timestamp (newest first) for relevance
+ * 
+ * Usage:
+ * ```tsx
+ * const pendingAlerts = useAtomValue(pendingAlertsAtom);
+ * return (
+ *   <Badge>{pendingAlerts.length}</Badge>
+ *   <AlertModal alerts={pendingAlerts} />
+ * );
+ * ```
+ */
+export const pendingAlertsAtom = atom((get) => {
+  const alerts = get(helpAlertsAtom);
+  return alerts
+    .filter(alert => alert.status === 'pending')
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+});
+
+/**
+ * Derived atom: Acknowledged alerts
+ * 
+ * WHY useful:
+ * - Instructor can review which alerts they've seen
+ * - Show "In progress" section in UI
+ * - Track which alerts instructor is actively working on
+ * 
+ * Returns acknowledged alerts sorted by acknowledgedAt (most recent first)
+ */
+export const acknowledgedAlertsAtom = atom((get) => {
+  const alerts = get(helpAlertsAtom);
+  return alerts
+    .filter(alert => alert.status === 'acknowledged')
+    .sort((a, b) => {
+      const timeA = a.acknowledgedAt?.getTime() ?? 0;
+      const timeB = b.acknowledgedAt?.getTime() ?? 0;
+      return timeB - timeA;
+    });
+});
+
+/**
+ * Derived atom: Alerts by room
+ * 
+ * WHY useful:
+ * - Show which breakout rooms need attention
+ * - Filter alerts: "Show only Room A alerts"
+ * - Room-specific badge counts: "Room B: 2 alerts"
+ * 
+ * Returns Map<roomId, HelpAlertEntity[]>
+ * Example: { 'main': [...], 'breakout-abc': [...], 'breakout-xyz': [...] }
+ * 
+ * Usage:
+ * ```tsx
+ * const alertsByRoom = useAtomValue(alertsByRoomAtom);
+ * const mainRoomAlerts = alertsByRoom.get('main') ?? [];
+ * ```
+ */
+export const alertsByRoomAtom = atom((get) => {
+  const alerts = get(helpAlertsAtom);
+  const byRoom = new Map<string, HelpAlertEntity[]>();
+  
+  alerts.forEach(alert => {
+    const existing = byRoom.get(alert.roomId) ?? [];
+    byRoom.set(alert.roomId, [...existing, alert]);
+  });
+  
+  return byRoom;
+});
+
+/**
+ * Derived atom: Pending alert count per room
+ * 
+ * WHY important:
+ * - Show badge on each breakout room: "Room A (2 alerts)"
+ * - Instructor can prioritize which room to check first
+ * - Quick overview of where help is needed most
+ * 
+ * Returns Record<roomId, count>
+ * Example: { 'main': 1, 'breakout-abc': 3, 'breakout-xyz': 0 }
+ * 
+ * Only counts pending alerts (not acknowledged or dismissed)
+ */
+export const pendingAlertCountsByRoomAtom = atom((get) => {
+  const pendingAlerts = get(pendingAlertsAtom);
+  const counts: Record<string, number> = {};
+  
+  pendingAlerts.forEach(alert => {
+    counts[alert.roomId] = (counts[alert.roomId] ?? 0) + 1;
+  });
+  
+  return counts;
+});
+
+/**
+ * Derived atom: Has any pending alerts?
+ * 
+ * WHY useful:
+ * - Simple boolean for showing/hiding alert notification icon
+ * - Enable/disable alert modal trigger
+ * - Show "No alerts" vs "3 students need help" state
+ * 
+ * Usage:
+ * ```tsx
+ * const hasAlerts = useAtomValue(hasPendingAlertsAtom);
+ * return hasAlerts ? <AlertIcon pulse /> : <AlertIcon />;
+ * ```
+ */
+export const hasPendingAlertsAtom = atom((get) => {
+  const pendingAlerts = get(pendingAlertsAtom);
+  return pendingAlerts.length > 0;
+});
+
+/**
+ * Derived atom: Alert summary for debugging
+ * 
+ * WHY useful during development:
+ * - Quick overview in DevTools
+ * - See alert distribution across rooms
+ * - Track status breakdown
+ * 
+ * Returns summary statistics
+ */
+export const helpAlertSummaryAtom = atom((get) => {
+  const alerts = get(helpAlertsAtom);
+  const pending = alerts.filter(a => a.status === 'pending');
+  const acknowledged = alerts.filter(a => a.status === 'acknowledged');
+  const dismissed = alerts.filter(a => a.status === 'dismissed');
+  
+  return {
+    total: alerts.length,
+    pending: pending.length,
+    acknowledged: acknowledged.length,
+    dismissed: dismissed.length,
+    rooms: Array.from(new Set(alerts.map(a => a.roomId))),
+  };
+});
+

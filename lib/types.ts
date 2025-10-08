@@ -60,19 +60,26 @@ export interface Participant {
 }
 
 /**
- * Breakout room (future enhancement)
+ * Breakout room
  * Sub-session within a classroom created by instructors
+ * 
+ * WHY breakout rooms:
+ * - Enables small group discussions during class
+ * - Instructor can assign students to specific groups
+ * - Supports 1-10 active breakout rooms simultaneously
  */
 export interface BreakoutRoom {
   id: string;                      // Unique identifier for breakout room (UUID)
   parentClassroomId: string;       // Reference to main classroom (1-6)
   name: string;                    // Display name (e.g., "Group 1", "Discussion A")
-  participantIds: string[];        // Daily participant session IDs
+  dailyRoomUrl: string;            // Daily.co room URL for this breakout session
+  participantIds: string[];        // Daily participant session IDs assigned to this room
   createdBy: string;               // User sessionId of instructor who created it
   createdAt: Date;                 // Creation timestamp
-  isActive: boolean;               // Whether breakout room is currently running
-  maxDuration: number;             // Maximum duration in minutes (default 30)
-  remainingTime?: number;          // Remaining time in minutes
+  closedAt?: Date;                 // When room was closed (optional, null if still active)
+  status: 'active' | 'closed';     // Current state of the breakout room
+  maxDuration?: number;            // Maximum duration in minutes (default 30, optional)
+  remainingTime?: number;          // Remaining time in minutes (optional, for countdown UI)
 }
 
 /**
@@ -509,4 +516,103 @@ export interface QuizQuestion {
    * WHY: If instructor edits transcript, we know which questions to regenerate
    */
   sourceTranscriptIds: string[];
+}
+
+/**
+ * =======================
+ * INSTRUCTOR INTERFACE IMPROVEMENTS (Phase 4)
+ * =======================
+ * Types for media controls, chat, layout customization, and enhanced features
+ */
+
+/**
+ * MediaControlState - tracks instructor's local media device states
+ * 
+ * WHY track pending states:
+ * - Provides optimistic UI feedback while toggle operation completes
+ * - Prevents double-clicks during media state changes
+ * - Resets after operation completes or times out (>200ms)
+ */
+export interface MediaControlState {
+  microphoneEnabled: boolean;      // Whether instructor's microphone is active
+  cameraEnabled: boolean;          // Whether instructor's camera is active
+  microphonePending: boolean;      // Loading state while microphone toggles (optimistic UI)
+  cameraPending: boolean;          // Loading state while camera toggles (optimistic UI)
+}
+
+/**
+ * ParticipantAudioState - represents each participant's mute/unmute status
+ * Used for calculating aggregate controls (mute all/unmute all button)
+ * 
+ * WHY separate from Participant type:
+ * - Focused on audio state only (simpler than full participant data)
+ * - Derived from Daily.co participant list in real-time
+ * - Enables efficient calculation of "all students muted" state
+ */
+export interface ParticipantAudioState {
+  sessionId: string;               // Daily.co session identifier (unique per participant)
+  name: string;                    // Participant display name
+  isMuted: boolean;                // Current audio state
+  isInstructor: boolean;           // Role flag (instructors excluded from "mute all" operations)
+}
+
+/**
+ * ChatMessage - represents a text communication sent by a participant
+ * 
+ * WHY roomId scoping:
+ * - Chat messages are scoped to specific rooms (main classroom or breakout rooms)
+ * - Instructor can see messages from all rooms
+ * - Students only see messages from their current room
+ * - Enables private breakout room discussions
+ */
+export interface ChatMessage {
+  id: string;                      // Unique identifier (UUID)
+  timestamp: Date;                 // When message was sent
+  senderId: string;                // Participant session ID (Daily.co identifier)
+  senderName: string;              // Display name
+  role: 'instructor' | 'student';  // Sender's role
+  text: string;                    // Message content (1-2000 characters)
+  roomId: string;                  // Scope: 'main' or breakout room ID
+  sessionId: string;               // Classroom session identifier
+}
+
+/**
+ * QuizStatus - lightweight quiz lifecycle metadata for instructor UI
+ * 
+ * WHY separate from Quiz type:
+ * - Quiz is the full data structure (questions, answers, explanations)
+ * - QuizStatus is lightweight metadata for status indicators
+ * - Can be updated without reloading entire quiz
+ * - Used for telemetry and instructor visibility
+ */
+export interface QuizStatus {
+  quizId: string;                  // Unique identifier
+  phase: 'pending' | 'active' | 'completed'; // Current lifecycle phase
+  createdAt: Date;                 // When quiz was generated
+  startedAt?: Date;                // When quiz became active (optional)
+  endedAt?: Date;                  // When quiz ended (optional)
+  transcriptSegmentId?: string;    // Reference to source transcript (optional)
+  questionCount: number;           // Number of questions in quiz
+  deliveredToCount: number;        // How many students received quiz
+  viewedByCount: number;           // How many students opened quiz
+}
+
+/**
+ * LayoutConfiguration - instructor's video arrangement preferences
+ * 
+ * WHY layout presets:
+ * - Grid: Equal-sized tiles in rows/columns (default)
+ * - Spotlight: Large active speaker tile + smaller sidebar tiles
+ * - Custom: Instructor-defined sizes via drag-resize
+ * 
+ * WHY responsive constraints:
+ * - Desktop (>1024px): All presets + drag-resize enabled
+ * - Tablet (768-1024px): Presets only, drag-resize disabled
+ * - Mobile (<768px): Auto-selected preset, no customization
+ */
+export interface LayoutConfiguration {
+  preset: 'grid' | 'spotlight' | 'custom'; // Active layout mode
+  tileSizes: Map<string, { width: number; height: number }>; // Custom sizes per participant (sessionId key)
+  gridColumns?: number;            // For grid mode, optional column count override (1-6)
+  spotlightParticipantId?: string; // For spotlight mode, which participant to highlight (auto-detected by audio if not set)
 }

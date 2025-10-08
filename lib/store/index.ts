@@ -55,7 +55,7 @@ export const quizStore = new QuizStore();
 setInterval(() => {
   const dismissedCount = alertStore.autoDismissOld();
   if (dismissedCount > 0) {
-    console.log(`[Alert Cleanup] Auto-dismissed ${dismissedCount} old alerts`);
+    // Auto-dismissed old alerts
   }
 }, 5 * 60 * 1000); // Run every 5 minutes
 

@@ -154,3 +154,27 @@ export class TranscriptStore {
   }
 }
 
+// ============================================================================
+// Jotai Atoms for Transcript UI State (Client-side)
+// ============================================================================
+// WHY Jotai atoms alongside class-based store:
+// - Class-based store is for server-side API routes (transcript storage)
+// - Jotai atoms are for client-side React components (UI state like scroll position)
+// - Scroll position needs to persist during session for better UX
+
+import { atom } from 'jotai';
+
+/**
+ * Transcript scroll position atom - tracks scroll position in transcript UI
+ * 
+ * WHY track scroll position:
+ * - Enables scrollback functionality (users can review older transcript entries)
+ * - Preserves scroll position when component re-renders or updates
+ * - Allows "jump to bottom" button when user scrolls up
+ * 
+ * Value is scroll offset in pixels (0 = top of transcript)
+ * Updated by TranscriptMonitor component when user scrolls
+ * Reset to 0 (or max for auto-scroll to bottom) when session starts/ends
+ */
+export const transcriptScrollPositionAtom = atom<number>(0);
+

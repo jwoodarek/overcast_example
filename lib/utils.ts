@@ -556,3 +556,204 @@ export async function monitorPerformance<T>(
     throw err;
   }
 }
+
+// ============================================================================
+// Transcript Export Utilities (Phase 4)
+// ============================================================================
+
+import type { TranscriptEntry } from './types';
+
+/**
+ * Formats a timestamp for transcript export
+ * Converts Date to ISO 8601 format for consistency across CSV and JSON exports
+ * 
+ * WHY ISO 8601:
+ * - Sortable and unambiguous (includes timezone)
+ * - Widely supported by analysis tools and spreadsheet applications
+ * - Human-readable but also machine-parseable
+ * 
+ * @param date - Date to format
+ * @returns ISO 8601 formatted timestamp string (e.g., "2025-10-08T14:23:45.123Z")
+ */
+export function formatTimestampForExport(date: Date): string {
+  return date.toISOString();
+}
+
+/**
+ * Exports transcript entries as CSV format
+ * 
+ * CSV Format:
+ * - Column headers: Timestamp, Speaker, Text
+ * - Timestamp in ISO 8601 format (sortable)
+ * - Speaker includes role for clarity (e.g., "Alice (Student)", "Professor Smith (Instructor)")
+ * - Text properly escaped per RFC 4180 (quotes, commas, newlines)
+ * 
+ * WHY CSV:
+ * - Easy to open in Excel, Google Sheets, or any text editor
+ * - Simple for non-technical users
+ * - Good for quick review or manual analysis
+ * 
+ * @param entries - Array of transcript entries to export
+ * @returns CSV string with headers and data rows
+ */
+export function exportTranscriptAsCSV(entries: TranscriptEntry[]): string {
+  // CSV header row
+  const headers = ['Timestamp', 'Speaker', 'Text'];
+  const rows: string[] = [headers.join(',')];
+  
+  // Process each entry
+  for (const entry of entries) {
+    const timestamp = formatTimestampForExport(entry.timestamp);
+    
+    // Format speaker with role annotation
+    const speaker = `${entry.speakerName} (${capitalize(entry.speakerRole)})`;
+    
+    // Escape text for CSV (RFC 4180)
+    // - Wrap in quotes if contains comma, quote, or newline
+    // - Escape quotes by doubling them
+    const text = escapeCsvField(entry.text);
+    
+    rows.push(`${timestamp},${escapeCsvField(speaker)},${text}`);
+  }
+  
+  return rows.join('\n');
+}
+
+/**
+ * Escapes a field for CSV format per RFC 4180
+ * 
+ * WHY manual escaping:
+ * - Ensures proper handling of special characters
+ * - Prevents CSV parsing errors in Excel/Sheets
+ * - Standard approach for CSV generation
+ * 
+ * Rules:
+ * - Fields with comma, quote, or newline must be quoted
+ * - Quotes within field must be doubled (" becomes "")
+ * 
+ * @param field - Field value to escape
+ * @returns Escaped field value (with quotes if needed)
+ */
+function escapeCsvField(field: string): string {
+  // Check if field needs quoting
+  const needsQuoting = /[",\n\r]/.test(field);
+  
+  if (needsQuoting) {
+    // Escape quotes by doubling them
+    const escaped = field.replace(/"/g, '""');
+    return `"${escaped}"`;
+  }
+  
+  return field;
+}
+
+/**
+ * Exports transcript entries as JSON format
+ * 
+ * JSON Format:
+ * - Session metadata (session_id, session_start, exported_at)
+ * - Array of transcript entries with structured data
+ * - Each entry includes: timestamp, speaker_id, speaker_name, role, text
+ * - Optionally includes confidence scores if available
+ * 
+ * WHY JSON:
+ * - Machine-readable for automated analysis
+ * - Preserves data types (dates, numbers)
+ * - Structured format for programmatic processing
+ * - Can include additional metadata not suitable for CSV
+ * 
+ * @param entries - Array of transcript entries to export
+ * @param sessionId - Session identifier for metadata
+ * @param sessionStart - When the session started (optional)
+ * @returns JSON string with session metadata and transcript entries
+ */
+export function exportTranscriptAsJSON(
+  entries: TranscriptEntry[],
+  sessionId: string,
+  sessionStart?: Date
+): string {
+  const exportData = {
+    session_id: sessionId,
+    session_start: sessionStart ? formatTimestampForExport(sessionStart) : null,
+    exported_at: formatTimestampForExport(new Date()),
+    entry_count: entries.length,
+    transcript: entries.map(entry => ({
+      timestamp: formatTimestampForExport(entry.timestamp),
+      speaker_id: entry.speakerId,
+      speaker_name: entry.speakerName,
+      role: entry.speakerRole,
+      text: entry.text,
+      confidence: entry.confidence,
+      breakout_room_name: entry.breakoutRoomName || null,
+    })),
+  };
+  
+  // Pretty print JSON for readability (2-space indent)
+  return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Triggers a browser download of exported transcript data
+ * 
+ * WHY client-side download:
+ * - No server storage required (in-memory export)
+ * - Immediate download without API round-trip
+ * - Works in all modern browsers
+ * 
+ * Implementation:
+ * - Creates Blob with appropriate MIME type
+ * - Generates temporary object URL
+ * - Triggers download via hidden anchor element
+ * - Cleans up object URL after download
+ * 
+ * @param content - File content (CSV or JSON string)
+ * @param filename - Name for downloaded file
+ * @param mimeType - MIME type ('text/csv' or 'application/json')
+ */
+export function triggerTranscriptDownload(
+  content: string,
+  filename: string,
+  mimeType: 'text/csv' | 'application/json'
+): void {
+  // Create Blob with content
+  const blob = new Blob([content], { type: mimeType });
+  
+  // Generate temporary object URL
+  const url = URL.createObjectURL(blob);
+  
+  // Create hidden anchor element and trigger click
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.style.display = 'none';
+  
+  document.body.appendChild(anchor);
+  anchor.click();
+  
+  // Cleanup
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Generates standardized filename for transcript export
+ * 
+ * Format: transcript-{sessionId}-{date}.{ext}
+ * Example: transcript-abc123-2025-10-08.csv
+ * 
+ * WHY standardized naming:
+ * - Easy to identify transcript files
+ * - Sortable by date
+ * - Includes session ID for reference
+ * 
+ * @param sessionId - Session identifier
+ * @param format - Export format ('csv' or 'json')
+ * @returns Formatted filename string
+ */
+export function generateTranscriptFilename(
+  sessionId: string,
+  format: 'csv' | 'json'
+): string {
+  const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  return `transcript-${sessionId}-${date}.${format}`;
+}

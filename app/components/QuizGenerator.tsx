@@ -18,8 +18,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
 import { Quiz, QuizQuestion } from '@/lib/types';
+import { 
+  activeQuizAtom, 
+  quizHistoryAtom, 
+  quizTelemetryAtom,
+  QuizStatus,
+  QuizTelemetryEvent 
+} from '@/lib/store/quiz-store';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui';
 import { Button } from './ui';
 import { Input } from './ui';
@@ -47,9 +55,57 @@ export default function QuizGenerator({
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [questionCount, setQuestionCount] = useState(5);
   const [difficulty, setDifficulty] = useState<'mixed' | 'easy' | 'medium' | 'hard'>('mixed');
+  const [showTelemetry, setShowTelemetry] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Jotai atoms for quiz state management
+  const [activeQuiz, setActiveQuiz] = useAtom(activeQuizAtom);
+  const setQuizHistory = useSetAtom(quizHistoryAtom);
+  const setQuizTelemetry = useSetAtom(quizTelemetryAtom);
+
+  /**
+   * T040: Log telemetry event for quiz lifecycle tracking
+   * WHY: Instructors need visibility into quiz activity for verification
+   */
+  const logTelemetryEvent = (
+    quizId: string,
+    eventType: 'created' | 'started' | 'ended' | 'delivered' | 'viewed',
+    metadata?: Record<string, unknown>
+  ) => {
+    const event: QuizTelemetryEvent = {
+      quizId,
+      eventType,
+      timestamp: new Date(),
+      metadata,
+    };
+    setQuizTelemetry((prev) => [...prev, event]);
+  };
+
+  /**
+   * T039: Show toast notification for quiz lifecycle events
+   * WHY: Provides real-time feedback to instructors about quiz status changes
+   */
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  /**
+   * T039: Toast auto-dismiss effect
+   * WHY: Toast notifications should automatically disappear after a few seconds
+   */
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   /**
    * Generate quiz from transcripts.
+   * T039: Shows toast notification on success
+   * T040: Logs telemetry event when quiz is created
    */
   const handleGenerate = async () => {
     setGenerating(true);
@@ -76,11 +132,33 @@ export default function QuizGenerator({
       }
 
       const data = await response.json();
-      setQuiz(data.quiz);
+      const generatedQuiz = data.quiz;
+      setQuiz(generatedQuiz);
       setError(null);
+
+      // T040: Create QuizStatus and set as active quiz
+      const quizStatus: QuizStatus = {
+        quizId: generatedQuiz.id,
+        phase: 'pending',
+        createdAt: generatedQuiz.createdAt ? new Date(generatedQuiz.createdAt) : new Date(),
+        questionCount: generatedQuiz.questions.length,
+        deliveredToCount: 0,
+        viewedByCount: 0,
+      };
+      setActiveQuiz(quizStatus);
+
+      // T040: Log telemetry for quiz creation
+      logTelemetryEvent(generatedQuiz.id, 'created', {
+        questionCount: generatedQuiz.questions.length,
+        difficulty,
+      });
+
+      // T039: Show success toast
+      showToast('Quiz generated successfully!');
     } catch (err) {
-      console.error('[QuizGenerator] Error generating quiz:', err);
+      console.error('Failed to generate quiz:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate quiz');
+      showToast('Failed to generate quiz. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -132,13 +210,15 @@ export default function QuizGenerator({
 
       alert('Quiz saved successfully!');
     } catch (err) {
-      console.error('[QuizGenerator] Error saving quiz:', err);
+      console.error('Failed to save quiz:', err);
       alert('Failed to save quiz');
     }
   };
 
   /**
    * Publish quiz (change status to published).
+   * T039: Shows toast notification on success
+   * T040: Logs telemetry event when quiz is started (published = started)
    */
   const handlePublish = async () => {
     if (!quiz) return;
@@ -165,19 +245,40 @@ export default function QuizGenerator({
       const data = await response.json();
       setQuiz(data.quiz);
       
+      // T040: Update quiz status to 'active' phase when published
+      if (activeQuiz) {
+        const updatedStatus: QuizStatus = {
+          ...activeQuiz,
+          phase: 'active',
+          startedAt: new Date(),
+        };
+        setActiveQuiz(updatedStatus);
+
+        // Add to history
+        setQuizHistory((prev) => [...prev, updatedStatus]);
+      }
+
+      // T040: Log telemetry for quiz start
+      logTelemetryEvent(quiz.id, 'started', {
+        publishedAt: new Date().toISOString(),
+      });
+
       if (onQuizPublished) {
         onQuizPublished(data.quiz);
       }
 
-      alert('Quiz published successfully!');
+      // T039: Show success toast instead of alert
+      showToast('Quiz published successfully! Students can now see it.');
     } catch (err) {
-      console.error('[QuizGenerator] Error publishing quiz:', err);
-      alert('Failed to publish quiz');
+      console.error('Failed to publish quiz:', err);
+      showToast('Failed to publish quiz. Please try again.');
     }
   };
 
   /**
    * Discard quiz (delete).
+   * T039: Shows toast notification
+   * T040: Logs telemetry event when quiz is ended/discarded
    */
   const handleDiscard = async () => {
     if (!quiz) return;
@@ -195,21 +296,65 @@ export default function QuizGenerator({
         throw new Error('Failed to delete quiz');
       }
 
+      // T040: Update quiz status to 'completed' phase and log telemetry
+      if (activeQuiz) {
+        const completedStatus: QuizStatus = {
+          ...activeQuiz,
+          phase: 'completed',
+          endedAt: new Date(),
+        };
+        setActiveQuiz(null); // Clear active quiz
+        setQuizHistory((prev) => [...prev, completedStatus]);
+
+        // Log telemetry for quiz end
+        logTelemetryEvent(quiz.id, 'ended', {
+          reason: 'discarded',
+          endedAt: new Date().toISOString(),
+        });
+      }
+
       setQuiz(null);
+      
+      // T039: Show toast notification
+      showToast('Quiz discarded successfully.');
     } catch (err) {
-      console.error('[QuizGenerator] Error deleting quiz:', err);
-      alert('Failed to delete quiz');
+      console.error('Failed to delete quiz:', err);
+      showToast('Failed to discard quiz. Please try again.');
     }
   };
 
   // Initial state - no quiz generated yet
   if (!quiz) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Generate Quiz</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <>
+        {/* T039: Toast notification display */}
+        {toastMessage && (
+          <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg animate-fade-in">
+            {toastMessage}
+          </div>
+        )}
+
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Generate Quiz</span>
+              {/* T038: Quiz status badge */}
+              {activeQuiz && (
+                <span
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    activeQuiz.phase === 'completed'
+                      ? 'bg-gray-100 text-gray-800'
+                      : activeQuiz.phase === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
+                  Quiz {activeQuiz.phase}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
           <p className="text-gray-600 mb-4">
             Generate a quiz from your teaching transcripts. Questions will be created
             based on the content you&apos;ve covered in this session.
@@ -272,29 +417,54 @@ export default function QuizGenerator({
             </p>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </>
     );
   }
 
   // Quiz generated - show editing interface
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <Input
-            value={quiz.title || 'Untitled Quiz'}
-            onChange={(e) => handleUpdateTitle(e.target.value)}
-            className="text-xl font-bold"
-          />
-          <span className={`px-3 py-1 rounded text-sm ${
-            quiz.status === 'published' 
-              ? 'bg-green-100 text-green-800'
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {quiz.status}
-          </span>
-        </CardTitle>
-      </CardHeader>
+    <>
+      {/* T039: Toast notification display */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg animate-fade-in">
+          {toastMessage}
+        </div>
+      )}
+
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <Input
+              value={quiz.title || 'Untitled Quiz'}
+              onChange={(e) => handleUpdateTitle(e.target.value)}
+              className="text-xl font-bold"
+            />
+            <div className="flex items-center gap-2">
+              {/* T038: Quiz status badge - shows both quiz.status and activeQuiz.phase */}
+              {activeQuiz && (
+                <span
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    activeQuiz.phase === 'completed'
+                      ? 'bg-gray-100 text-gray-800'
+                      : activeQuiz.phase === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
+                  Quiz {activeQuiz.phase}
+                </span>
+              )}
+              <span className={`px-3 py-1 rounded text-sm ${
+                quiz.status === 'published' 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {quiz.status}
+              </span>
+            </div>
+          </CardTitle>
+        </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600 mb-4">
           Review and edit questions before publishing. Click on any question to edit it.
@@ -384,6 +554,77 @@ export default function QuizGenerator({
             </div>
           ))}
         </div>
+
+        {/* T041: Telemetry view for instructors */}
+        <div className="mt-6 border-t pt-4">
+          <button
+            onClick={() => setShowTelemetry(!showTelemetry)}
+            className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <span>Quiz Activity & Telemetry</span>
+            <span className="text-xs text-gray-500">
+              {showTelemetry ? '▼ Hide' : '▶ Show'}
+            </span>
+          </button>
+          
+          {showTelemetry && activeQuiz && (
+            <div className="mt-4 space-y-3">
+              {/* Quiz metadata */}
+              <div className="bg-gray-50 p-3 rounded text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="font-medium text-gray-700">Phase:</span>{' '}
+                    <span className="text-gray-900">{activeQuiz.phase}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Questions:</span>{' '}
+                    <span className="text-gray-900">{activeQuiz.questionCount}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Created:</span>{' '}
+                    <span className="text-gray-900">
+                      {activeQuiz.createdAt.toLocaleTimeString()}
+                    </span>
+                  </div>
+                  {activeQuiz.startedAt && (
+                    <div>
+                      <span className="font-medium text-gray-700">Started:</span>{' '}
+                      <span className="text-gray-900">
+                        {activeQuiz.startedAt.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  )}
+                  {activeQuiz.endedAt && (
+                    <div>
+                      <span className="font-medium text-gray-700">Ended:</span>{' '}
+                      <span className="text-gray-900">
+                        {activeQuiz.endedAt.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium text-gray-700">Delivered:</span>{' '}
+                    <span className="text-gray-900">
+                      {activeQuiz.deliveredToCount} students
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Viewed:</span>{' '}
+                    <span className="text-gray-900">
+                      {activeQuiz.viewedByCount} students
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Telemetry events timeline */}
+              <div className="text-xs text-gray-600">
+                <h4 className="font-medium text-gray-700 mb-2">Lifecycle Events:</h4>
+                <TelemetryEventsList quizId={quiz.id} />
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
       <CardFooter>
         <div className="flex gap-2 w-full">
@@ -403,6 +644,58 @@ export default function QuizGenerator({
         </div>
       </CardFooter>
     </Card>
+    </>
+  );
+}
+
+/**
+ * T041: TelemetryEventsList component
+ * Displays chronological list of quiz lifecycle events
+ * WHY separate component: Keeps main component clean, reusable if needed
+ */
+function TelemetryEventsList({ quizId }: { quizId: string }) {
+  const [telemetryEvents] = useAtom(quizTelemetryAtom);
+  
+  // Filter events for this quiz
+  const quizEvents = telemetryEvents.filter((e) => e.quizId === quizId);
+  
+  if (quizEvents.length === 0) {
+    return (
+      <p className="text-gray-500 italic">No events logged yet.</p>
+    );
+  }
+  
+  return (
+    <div className="space-y-1">
+      {quizEvents.map((event, index) => (
+        <div
+          key={`${event.quizId}-${event.eventType}-${index}`}
+          className="flex items-start gap-2 p-2 bg-white border border-gray-200 rounded"
+        >
+          <span
+            className={`px-2 py-0.5 rounded text-xs font-medium ${
+              event.eventType === 'created'
+                ? 'bg-blue-100 text-blue-800'
+                : event.eventType === 'started'
+                ? 'bg-green-100 text-green-800'
+                : event.eventType === 'ended'
+                ? 'bg-gray-100 text-gray-800'
+                : 'bg-purple-100 text-purple-800'
+            }`}
+          >
+            {event.eventType}
+          </span>
+          <span className="text-gray-600">
+            {event.timestamp.toLocaleTimeString()}
+          </span>
+          {event.metadata && (
+            <span className="text-gray-500 text-xs">
+              {JSON.stringify(event.metadata)}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 

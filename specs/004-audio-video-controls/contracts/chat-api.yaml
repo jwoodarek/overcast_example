@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: Chat API
+  description: Text chat interface for classroom sessions with breakout room support
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /chat/messages:
+    post:
+      summary: Send a chat message
+      description: Posts a message to the specified room (main or breakout). Message is broadcast to all participants with access to that room.
+      operationId: sendChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - senderId
+                - senderName
+                - role
+                - text
+                - roomId
+              properties:
+                sessionId:
+                  type: string
+                  description: Classroom session identifier
+                  example: "abc-123-session"
+                senderId:
+                  type: string
+                  description: Participant session ID from Daily.co
+                  example: "participant-uuid"
+                senderName:
+                  type: string
+                  description: Display name of sender
+                  example: "Alice"
+                role:
+                  type: string
+                  enum: [instructor, student]
+                  description: Role of message sender
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  description: Message content
+                  example: "Does anyone have a question about the assignment?"
+                roomId:
+                  type: string
+                  description: Target room - 'main' for main classroom or breakout room ID
+                  example: "main"
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Generated message ID
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: Server timestamp when message was created
+                  message:
+                    type: string
+                    example: "Message sent"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                emptyText:
+                  value:
+                    error: "Message text cannot be empty"
+                textTooLong:
+                  value:
+                    error: "Message text exceeds 2000 character limit"
+                invalidRoom:
+                  value:
+                    error: "Room ID does not exist or is inactive"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Get chat messages for a room
+      description: Retrieves all messages for specified room. Instructors can access any room, students only their current room.
+      operationId: getChatMessages
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Classroom session identifier
+        - name: roomId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Room ID to retrieve messages from ('main' or breakout ID)
+        - name: requesterId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Participant session ID making the request (for authorization)
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Only return messages after this timestamp (for polling)
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+                  roomId:
+                    type: string
+                    description: Room these messages belong to
+                  hasMore:
+                    type: boolean
+                    description: Whether more messages exist (for pagination, future)
+        '403':
+          description: Forbidden - requester doesn't have access to this room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "You do not have access to this room"
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ChatMessage:
+      type: object
+      required:
+        - id
+        - timestamp
+        - senderId
+        - senderName
+        - role
+        - text
+        - roomId
+        - sessionId
+      properties:
+        id:
+          type: string
+          description: Unique message identifier
+          example: "msg-uuid-123"
+        timestamp:
+          type: string
+          format: date-time
+          description: When message was sent
+          example: "2025-10-08T14:23:45.123Z"
+        senderId:
+          type: string
+          description: Participant session ID who sent message
+          example: "participant-uuid"
+        senderName:
+          type: string
+          description: Display name of sender
+          example: "Alice"
+        role:
+          type: string
+          enum: [instructor, student]
+          description: Sender's role
+        text:
+          type: string
+          description: Message content
+          example: "Thank you for the explanation"
+        roomId:
+          type: string
+          description: Which room message belongs to
+          example: "main"
+        sessionId:
+          type: string
+          description: Classroom session identifier
+          example: "abc-123-session"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Validation failed"
+        details:
+          type: object
+          description: Additional error context (optional)
+          additionalProperties: true
+
+tags:
+  - name: chat
+    description: Text chat operations
+

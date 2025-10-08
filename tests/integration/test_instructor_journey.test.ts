@@ -213,4 +213,246 @@ test.describe('Instructor Journey Integration Tests', () => {
     // Verify action was successful
     await expect(page.locator('[data-testid="mute-all-success"]')).toBeVisible();
   });
+
+  // T054: New tests for instructor interface improvements
+
+  test('should toggle personal media controls (mic and camera)', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Media Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Verify media control buttons are visible
+    await expect(page.locator('[data-testid="instructor-mic-toggle"]')).toBeVisible();
+    await expect(page.locator('[data-testid="instructor-camera-toggle"]')).toBeVisible();
+    
+    // Test microphone toggle
+    const micButton = page.locator('[data-testid="instructor-mic-toggle"]');
+    await micButton.click();
+    
+    // Verify button state changes
+    await expect(micButton).toContainText('Mic Off');
+    
+    // Click again to turn back on
+    await micButton.click();
+    await expect(micButton).toContainText('Mic On');
+    
+    // Test camera toggle
+    const cameraButton = page.locator('[data-testid="instructor-camera-toggle"]');
+    await cameraButton.click();
+    
+    // Verify button state changes
+    await expect(cameraButton).toContainText('Camera Off');
+    
+    // Click again to turn back on
+    await cameraButton.click();
+    await expect(cameraButton).toContainText('Camera On');
+  });
+
+  test('should support keyboard shortcuts for media controls', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Keyboard Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Verify mic button shows keyboard shortcut hint
+    await expect(page.locator('[data-testid="instructor-mic-toggle"]')).toHaveAttribute('aria-keyshortcuts', 'm');
+    await expect(page.locator('[data-testid="instructor-camera-toggle"]')).toHaveAttribute('aria-keyshortcuts', 'c');
+    
+    // Test 'M' key toggles microphone
+    const micButton = page.locator('[data-testid="instructor-mic-toggle"]');
+    const initialMicState = await micButton.textContent();
+    
+    await page.keyboard.press('m');
+    
+    // Wait a moment for state change
+    await page.waitForTimeout(300);
+    
+    const newMicState = await micButton.textContent();
+    expect(newMicState).not.toBe(initialMicState);
+    
+    // Test 'C' key toggles camera
+    const cameraButton = page.locator('[data-testid="instructor-camera-toggle"]');
+    const initialCameraState = await cameraButton.textContent();
+    
+    await page.keyboard.press('c');
+    
+    // Wait a moment for state change
+    await page.waitForTimeout(300);
+    
+    const newCameraState = await cameraButton.textContent();
+    expect(newCameraState).not.toBe(initialCameraState);
+  });
+
+  test('should display smart mute all toggle with real-time state', async ({ page, context }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Smart Toggle Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Add a student
+    const studentContext = await context.browser()?.newContext();
+    const studentPage = await studentContext?.newPage();
+    
+    if (studentPage) {
+      await studentPage.goto('http://localhost:3000');
+      await studentPage.click('text=Cohort 1');
+      await studentPage.fill('[data-testid="name-input"]', 'Test Student');
+      await studentPage.click('[data-testid="join-as-student"]');
+      
+      await expect(page.locator('[data-testid="participant-count"]')).toContainText('2');
+      
+      // Initially, student should be unmuted, so button should say "Mute All"
+      const muteToggle = page.locator('[data-testid="mute-all-button"]');
+      await expect(muteToggle).toContainText('Mute All Students');
+      
+      // Click to mute all
+      await muteToggle.click();
+      
+      // Button should now say "Unmute All"
+      await expect(muteToggle).toContainText('Unmute All Students');
+      
+      // Click to unmute all
+      await muteToggle.click();
+      
+      // Button should say "Mute All" again
+      await expect(muteToggle).toContainText('Mute All Students');
+      
+      // Cleanup
+      await studentContext?.close();
+    }
+  });
+
+  test('should support video layout presets (Grid and Spotlight)', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Layout Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Verify layout preset selector is visible
+    await expect(page.locator('[data-testid="layout-preset-selector"]')).toBeVisible();
+    
+    // Default should be Grid
+    await expect(page.locator('[data-testid="layout-preset-selector"]')).toHaveValue('grid');
+    
+    // Switch to Spotlight layout
+    await page.selectOption('[data-testid="layout-preset-selector"]', 'spotlight');
+    
+    // Verify layout changes
+    await expect(page.locator('[data-testid="video-layout-spotlight"]')).toBeVisible();
+    await expect(page.locator('[data-testid="video-layout-grid"]')).not.toBeVisible();
+    
+    // Switch back to Grid
+    await page.selectOption('[data-testid="layout-preset-selector"]', 'grid');
+    
+    // Verify layout changes back
+    await expect(page.locator('[data-testid="video-layout-grid"]')).toBeVisible();
+    await expect(page.locator('[data-testid="video-layout-spotlight"]')).not.toBeVisible();
+  });
+
+  test('should export transcript in CSV and JSON formats', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Export Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Accept transcription consent (if prompted)
+    const consentButton = page.locator('[data-testid="transcription-consent-accept"]');
+    if (await consentButton.isVisible({ timeout: 5000 })) {
+      await consentButton.click();
+    }
+    
+    // Wait for transcript panel to be visible
+    await expect(page.locator('[data-testid="transcript-monitor"]')).toBeVisible({ timeout: 10000 });
+    
+    // Verify export button is visible
+    await expect(page.locator('[data-testid="transcript-export-button"]')).toBeVisible();
+    
+    // Click export button to open format selector
+    await page.click('[data-testid="transcript-export-button"]');
+    
+    // Verify format options appear
+    await expect(page.locator('[data-testid="export-format-csv"]')).toBeVisible();
+    await expect(page.locator('[data-testid="export-format-json"]')).toBeVisible();
+    
+    // Test CSV export
+    const downloadPromise1 = page.waitForEvent('download');
+    await page.click('[data-testid="export-format-csv"]');
+    const download1 = await downloadPromise1;
+    
+    // Verify download filename includes transcript and CSV
+    expect(download1.suggestedFilename()).toContain('transcript');
+    expect(download1.suggestedFilename()).toContain('.csv');
+    
+    // Test JSON export
+    await page.click('[data-testid="transcript-export-button"]');
+    const downloadPromise2 = page.waitForEvent('download');
+    await page.click('[data-testid="export-format-json"]');
+    const download2 = await downloadPromise2;
+    
+    // Verify download filename includes transcript and JSON
+    expect(download2.suggestedFilename()).toContain('transcript');
+    expect(download2.suggestedFilename()).toContain('.json');
+  });
+
+  test('should auto-switch layout when screen share is detected', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Screen Share Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Start in Grid layout
+    await page.selectOption('[data-testid="layout-preset-selector"]', 'grid');
+    await expect(page.locator('[data-testid="video-layout-grid"]')).toBeVisible();
+    
+    // Simulate screen share starting (this would require Daily.co screen share API)
+    // This is a placeholder for future implementation
+    // In a real test, you would start screen sharing and verify layout changes
+    
+    test.skip(); // Skip until screen share detection is implemented
+  });
+
+  test('should show transcript scrollback capability', async ({ page }) => {
+    // Join as instructor
+    await page.click('[data-testid="instructors-toggle"]');
+    await page.click('text=Cohort 1');
+    await page.fill('[data-testid="name-input"]', 'Scrollback Test Instructor');
+    await page.click('[data-testid="join-as-instructor"]');
+    
+    await expect(page).toHaveURL(/\/classroom\/1/);
+    
+    // Accept transcription consent (if prompted)
+    const consentButton = page.locator('[data-testid="transcription-consent-accept"]');
+    if (await consentButton.isVisible({ timeout: 5000 })) {
+      await consentButton.click();
+    }
+    
+    // Wait for transcript panel
+    await expect(page.locator('[data-testid="transcript-monitor"]')).toBeVisible({ timeout: 10000 });
+    
+    // Verify transcript list is scrollable
+    const transcriptList = page.locator('[data-testid="transcript-entries-list"]');
+    await expect(transcriptList).toBeVisible();
+    
+    // Verify scrollback container has proper styling
+    await expect(transcriptList).toHaveCSS('overflow-y', 'auto');
+  });
 });

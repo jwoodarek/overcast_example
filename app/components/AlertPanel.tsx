@@ -1,26 +1,35 @@
 /**
  * AlertPanel Component
  * 
- * Displays help alerts for instructors in real-time.
- * Polls for new alerts every 2 seconds and shows them sorted by urgency.
+ * Prominent modal/popup system for displaying help alerts to instructors.
+ * Shows alerts one at a time with navigation, positioned prominently (not hidden at bottom).
  * 
- * WHY polling:
- * - Simple for MVP (no SSE or WebSocket infrastructure)
- * - 2-second polling acceptable latency (<5s alert requirement)
- * - Easy to upgrade to SSE later (just change fetch to EventSource)
+ * WHY modal instead of embedded panel:
+ * - More prominent (center screen or floating top-right)
+ * - Doesn't get lost in UI (spec requirement: "prominently displayed")
+ * - Can't be missed by instructor
+ * - Higher z-index ensures visibility above other elements
  * 
- * WHY color coding by urgency:
- * - Red (high) = immediate attention needed
- * - Yellow (medium) = should address soon
- * - Gray (low) = can wait, low priority
- * - Visual hierarchy helps instructors prioritize
+ * WHY navigation between alerts:
+ * - Instructor can review multiple alerts without dismissing
+ * - Shows "1 of 3" count for awareness
+ * - Prev/next buttons for easy navigation
+ * - Focus on one alert at a time (less cognitive overload)
+ * 
+ * WHY Jotai integration:
+ * - Real-time updates via atoms (pendingAlertsAtom)
+ * - Shared state with other components
+ * - Simpler than prop drilling
+ * - Follows constitutional principle of using established patterns
  */
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
 import { HelpAlert } from '@/lib/types';
-import { Card, CardHeader, CardTitle, CardContent } from './ui';
+import { helpAlertsAtom, pendingAlertsAtom, HelpAlertEntity } from '@/lib/store/alert-store';
+import Modal from './ui/Modal';
 import { Button } from './ui';
 
 interface AlertPanelProps {
@@ -28,165 +37,215 @@ interface AlertPanelProps {
   classroomSessionId: string;
   /** Instructor ID for acknowledging/resolving alerts */
   instructorId: string;
-  /** Whether to show only pending alerts or all */
-  showOnlyPending?: boolean;
-}
-
-/**
- * Alert counts by status
- */
-interface AlertCounts {
-  pending: number;
-  acknowledged: number;
-  resolved: number;
-  dismissed: number;
-  total: number;
+  /** Whether to show modal automatically when new alert arrives */
+  autoShow?: boolean;
 }
 
 export default function AlertPanel({
   classroomSessionId,
   instructorId,
-  showOnlyPending = true,
+  autoShow = true,
 }: AlertPanelProps) {
-  const [alerts, setAlerts] = useState<HelpAlert[]>([]);
-  const [counts, setCounts] = useState<AlertCounts>({
-    pending: 0,
-    acknowledged: 0,
-    resolved: 0,
-    dismissed: 0,
-    total: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Jotai state management - WHY: Real-time updates, shared state
+  const [, setHelpAlerts] = useAtom(helpAlertsAtom);
+  const pendingAlerts = useAtomValue(pendingAlertsAtom);
+  
+  // Modal and navigation state
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
   const [updatingAlertId, setUpdatingAlertId] = useState<string | null>(null);
 
   /**
-   * Fetch alerts from API.
-   * 
-   * WHY useCallback:
-   * - Prevents unnecessary re-renders
-   * - Stable function reference for useEffect dependency
+   * Auto-show modal when new alerts arrive
+   * WHY: Instructor shouldn't miss new help requests
+   * Spec requirement: Alerts must be prominently displayed
+   */
+  useEffect(() => {
+    if (autoShow && pendingAlerts.length > 0 && !isOpen) {
+      setIsOpen(true);
+      setCurrentIndex(0); // Always show first alert when auto-opening
+    }
+  }, [pendingAlerts.length, autoShow, isOpen]);
+
+  /**
+   * Reset current index if it exceeds alert count
+   * WHY: Prevents showing invalid index after dismissals
+   */
+  useEffect(() => {
+    if (currentIndex >= pendingAlerts.length && pendingAlerts.length > 0) {
+      setCurrentIndex(pendingAlerts.length - 1);
+    }
+  }, [currentIndex, pendingAlerts.length]);
+
+  /**
+   * Fetch alerts from API and sync to Jotai store
+   * WHY useCallback: Stable reference for useEffect dependency
    */
   const fetchAlerts = useCallback(async () => {
     try {
-      const statusFilter = showOnlyPending ? '?status=pending' : '';
-      const response = await fetch(
-        `/api/alerts/${classroomSessionId}${statusFilter}`
-      );
+      const response = await fetch(`/api/alerts/${classroomSessionId}?status=pending`);
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch alerts: ${response.statusText}`);
+        // Try to get error details from response
+        let errorDetails = response.statusText;
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.message || errorData.details || errorDetails;
+        } catch {
+          // Response wasn't JSON, use statusText
+        }
+        console.error(`Failed to fetch alerts (${response.status}):`, errorDetails);
+        setError(`Failed to fetch alerts: ${errorDetails}`);
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
-      setAlerts(data.alerts || []);
-      setCounts(data.counts || {
-        pending: 0,
-        acknowledged: 0,
-        resolved: 0,
-        dismissed: 0,
-        total: 0,
-      });
+      const alerts = data.alerts || [];
+      
+      // Convert API alerts to HelpAlertEntity format and sync to Jotai
+      const helpAlertEntities: HelpAlertEntity[] = alerts.map((alert: HelpAlert) => ({
+        id: alert.id,
+        studentId: alert.breakoutRoomSessionId, // Using breakout room session as student identifier
+        studentName: alert.topic || 'Student',
+        roomId: alert.breakoutRoomName || 'main',
+        timestamp: new Date(alert.detectedAt),
+        issueSummary: alert.contextSnippet || alert.topic,
+        status: alert.status === 'pending' ? 'pending' : alert.status === 'acknowledged' ? 'acknowledged' : 'dismissed',
+        acknowledgedAt: alert.acknowledgedAt ? new Date(alert.acknowledgedAt) : undefined,
+      }));
+      
+      setHelpAlerts(helpAlertEntities);
       setError(null);
     } catch (err) {
-      console.error('[AlertPanel] Error fetching alerts:', err);
+      console.error('Failed to fetch alerts:', err);
       setError(err instanceof Error ? err.message : 'Failed to load alerts');
     } finally {
       setLoading(false);
     }
-  }, [classroomSessionId, showOnlyPending]);
+  }, [classroomSessionId, setHelpAlerts]);
 
   /**
-   * Set up polling for new alerts.
-   * 
-   * WHY 2-second interval:
-   * - Fast enough for real-time feel (<5s requirement)
-   * - Not too frequent to overload server
-   * - Balance between responsiveness and efficiency
+   * Set up polling for new alerts
+   * WHY 2-second interval: Fast enough for real-time feel, not too frequent
    */
   useEffect(() => {
-    // Initial fetch
-    fetchAlerts();
-
-    // Set up polling
+    fetchAlerts(); // Initial fetch
     const interval = setInterval(fetchAlerts, 2000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); // Cleanup
   }, [fetchAlerts]);
 
   /**
-   * Update alert status (acknowledge, resolve, dismiss).
+   * Navigate to previous alert
+   * WHY: Instructor can review multiple alerts without dismissing
    */
-  const updateAlertStatus = async (
-    alertId: string,
-    status: 'acknowledged' | 'resolved' | 'dismissed'
-  ) => {
+  const handlePrevious = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  };
+
+  /**
+   * Navigate to next alert
+   * WHY: Instructor can move through queue of help requests
+   */
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(pendingAlerts.length - 1, prev + 1));
+  };
+
+  /**
+   * Acknowledge current alert
+   * WHY: Instructor marks alert as "I've seen this, will address it"
+   * Updates Jotai atom immediately (optimistic update) + API call
+   */
+  const handleAcknowledge = async (alertId: string) => {
     setUpdatingAlertId(alertId);
 
     try {
+      // Optimistic update in Jotai store
+      setHelpAlerts(prev => prev.map(alert =>
+        alert.id === alertId
+          ? { ...alert, status: 'acknowledged', acknowledgedAt: new Date() }
+          : alert
+      ));
+
+      // Update via API
       const response = await fetch('/api/alerts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          alertId,
-          status,
-          instructorId,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alertId, status: 'acknowledged', instructorId }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update alert');
+        throw new Error('Failed to acknowledge alert');
       }
 
-      // Refresh alerts after update
-      await fetchAlerts();
+      // Move to next alert after acknowledgment
+      if (currentIndex < pendingAlerts.length - 1) {
+        handleNext();
+      } else if (pendingAlerts.length === 1) {
+        // Last alert - close modal
+        setIsOpen(false);
+      }
     } catch (err) {
-      console.error('[AlertPanel] Error updating alert:', err);
-      alert(err instanceof Error ? err.message : 'Failed to update alert');
+      console.error('Failed to acknowledge alert:', err);
+      // Revert optimistic update on error
+      await fetchAlerts();
+      alert(err instanceof Error ? err.message : 'Failed to acknowledge alert');
     } finally {
       setUpdatingAlertId(null);
     }
   };
 
   /**
-   * Get color classes based on urgency.
-   * 
-   * WHY color coding:
-   * - Immediate visual priority indication
-   * - Reduces cognitive load (color = urgency)
-   * - Consistent with common UI patterns (red = urgent)
+   * Dismiss current alert
+   * WHY: Instructor marks alert as "not relevant" or "false positive"
+   * Removes from pending list immediately
    */
-  const getUrgencyColor = (urgency: HelpAlert['urgency']) => {
-    switch (urgency) {
-      case 'high':
-        return 'border-l-4 border-red-500 bg-red-50';
-      case 'medium':
-        return 'border-l-4 border-yellow-500 bg-yellow-50';
-      case 'low':
-        return 'border-l-4 border-gray-400 bg-gray-50';
+  const handleDismiss = async (alertId: string) => {
+    setUpdatingAlertId(alertId);
+
+    try {
+      // Optimistic update in Jotai store
+      setHelpAlerts(prev => prev.map(alert =>
+        alert.id === alertId
+          ? { ...alert, status: 'dismissed' }
+          : alert
+      ));
+
+      // Update via API
+      const response = await fetch('/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alertId, status: 'dismissed', instructorId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to dismiss alert');
+      }
+
+      // Navigate after dismissal
+      if (pendingAlerts.length === 1) {
+        // Last alert - close modal
+        setIsOpen(false);
+      } else if (currentIndex >= pendingAlerts.length - 1) {
+        // Was viewing last alert - go to previous
+        setCurrentIndex(Math.max(0, currentIndex - 1));
+      }
+      // Otherwise stay at current index (next alert slides into view)
+    } catch (err) {
+      console.error('Failed to dismiss alert:', err);
+      // Revert optimistic update on error
+      await fetchAlerts();
+      alert(err instanceof Error ? err.message : 'Failed to dismiss alert');
+    } finally {
+      setUpdatingAlertId(null);
     }
   };
 
   /**
-   * Get urgency badge color.
-   */
-  const getUrgencyBadgeColor = (urgency: HelpAlert['urgency']) => {
-    switch (urgency) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  /**
-   * Format timestamp for display.
+   * Format timestamp for display
+   * WHY: Relative time is more intuitive than absolute timestamp
    */
   const formatTime = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -203,178 +262,102 @@ export default function AlertPanel({
     return `${hours} hours ago`;
   };
 
-  // Loading state
-  if (loading && alerts.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Help Alerts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-500">Loading alerts...</p>
-        </CardContent>
-      </Card>
-    );
+  // Get current alert to display
+  const currentAlert = pendingAlerts[currentIndex];
+  const hasAlerts = pendingAlerts.length > 0;
+  const hasMultipleAlerts = pendingAlerts.length > 1;
+
+  // Don't render modal if no alerts
+  if (!hasAlerts) {
+    return null; // Silent when no alerts (not intrusive)
   }
 
-  // Error state
-  if (error && alerts.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Help Alerts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-red-600">Error: {error}</p>
-          <Button onClick={fetchAlerts} className="mt-2">
-            Retry
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Empty state
-  if (alerts.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Help Alerts</span>
-            <span className="text-sm font-normal text-gray-500">
-              {counts.total} total
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-500 text-center py-4">
-            {showOnlyPending 
-              ? 'No pending alerts. All students doing well! 🎉'
-              : 'No alerts for this session yet.'}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Main render with alerts
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Help Alerts</span>
-          <div className="flex gap-2 text-sm font-normal">
-            <span className="px-2 py-1 bg-red-100 text-red-800 rounded">
-              {counts.pending} pending
+    <Modal
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      title="Student Help Request"
+      description={`Alert ${currentIndex + 1} of ${pendingAlerts.length}`}
+      size="lg"
+      closeOnEscape={true}
+      closeOnOverlayClick={false} // Prevent accidental dismissal
+      className="z-[60]" // Above other modals
+      aria-live="assertive" // T063: Screen reader immediately announces new alerts
+      aria-atomic="true" // T063: Read entire alert content when announced
+    >
+      {currentAlert && (
+        <div className="space-y-4">
+          {/* Room Location */}
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span className="font-medium">📍 Location:</span>
+            <span className="text-teal-400">
+              {currentAlert.roomId === 'main' ? 'Main Room' : currentAlert.roomId}
             </span>
-            <span className="text-gray-500">
-              {counts.total} total
-            </span>
+            <span className="text-gray-500 ml-auto">{formatTime(currentAlert.timestamp)}</span>
           </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`p-4 rounded-lg ${getUrgencyColor(alert.urgency)}`}
-            >
-              {/* Alert Header */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${getUrgencyBadgeColor(
-                      alert.urgency
-                    )}`}
-                  >
-                    {alert.urgency.toUpperCase()}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {formatTime(alert.detectedAt)}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-500">
-                  {alert.status}
-                </span>
-              </div>
 
-              {/* Breakout Room Name */}
-              {alert.breakoutRoomName && (
-                <div className="text-sm font-semibold text-gray-700 mb-1">
-                  📍 {alert.breakoutRoomName}
-                </div>
-              )}
-
-              {/* Topic */}
-              <div className="text-base font-semibold text-gray-900 mb-2">
-                Topic: {alert.topic}
-              </div>
-
-              {/* Context Snippet */}
-              <div className="text-sm text-gray-700 mb-2 italic">
-                &ldquo;{alert.contextSnippet}&rdquo;
-              </div>
-
-              {/* Trigger Keywords */}
-              <div className="flex flex-wrap gap-1 mb-3">
-                {alert.triggerKeywords.map((keyword, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs px-2 py-1 bg-white rounded border border-gray-300"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-
-              {/* Action Buttons */}
-              {alert.status === 'pending' && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => updateAlertStatus(alert.id, 'acknowledged')}
-                    disabled={updatingAlertId === alert.id}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    {updatingAlertId === alert.id ? 'Updating...' : 'Acknowledge'}
-                  </Button>
-                  <Button
-                    onClick={() => updateAlertStatus(alert.id, 'resolved')}
-                    disabled={updatingAlertId === alert.id}
-                    variant="primary"
-                    size="sm"
-                  >
-                    {updatingAlertId === alert.id ? 'Updating...' : 'Resolve'}
-                  </Button>
-                  <Button
-                    onClick={() => updateAlertStatus(alert.id, 'dismissed')}
-                    disabled={updatingAlertId === alert.id}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Dismiss
-                  </Button>
-                </div>
-              )}
-
-              {alert.status === 'acknowledged' && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => updateAlertStatus(alert.id, 'resolved')}
-                    disabled={updatingAlertId === alert.id}
-                    variant="primary"
-                    size="sm"
-                  >
-                    {updatingAlertId === alert.id ? 'Updating...' : 'Mark Resolved'}
-                  </Button>
-                </div>
-              )}
+          {/* Student Info */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-lg font-semibold text-white mb-2">
+              {currentAlert.studentName}
             </div>
-          ))}
+            <div className="text-gray-300">
+              {currentAlert.issueSummary}
+            </div>
+          </div>
+
+          {/* Navigation Controls - WHY: Browse multiple alerts without dismissing */}
+          {hasMultipleAlerts && (
+            <div className="flex items-center justify-between bg-gray-800 border border-gray-700 rounded-lg p-3">
+              <Button
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+                variant="secondary"
+                size="sm"
+              >
+                ← Previous
+              </Button>
+              <span className="text-sm text-gray-400">
+                {currentIndex + 1} of {pendingAlerts.length}
+              </span>
+              <Button
+                onClick={handleNext}
+                disabled={currentIndex === pendingAlerts.length - 1}
+                variant="secondary"
+                size="sm"
+              >
+                Next →
+              </Button>
+            </div>
+          )}
+
+          {/* Action Buttons - WHY: Instructor can acknowledge or dismiss */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={() => handleAcknowledge(currentAlert.id)}
+              disabled={updatingAlertId === currentAlert.id}
+              variant="primary"
+              className="flex-1"
+            >
+              {updatingAlertId === currentAlert.id ? 'Processing...' : '✓ Acknowledge'}
+            </Button>
+            <Button
+              onClick={() => handleDismiss(currentAlert.id)}
+              disabled={updatingAlertId === currentAlert.id}
+              variant="ghost"
+              className="flex-1"
+            >
+              {updatingAlertId === currentAlert.id ? 'Processing...' : '✕ Dismiss'}
+            </Button>
+          </div>
+
+          {/* Help Text */}
+          <div className="text-xs text-gray-500 text-center">
+            Acknowledge to mark as &ldquo;will address&rdquo; • Dismiss if not relevant
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </Modal>
   );
 }
 

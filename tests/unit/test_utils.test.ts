@@ -29,7 +29,12 @@ import {
   withErrorBoundary,
   withRetry,
   monitorPerformance,
+  formatTimestampForExport,
+  exportTranscriptAsCSV,
+  exportTranscriptAsJSON,
+  generateTranscriptFilename,
 } from '@/lib/utils';
+import { TranscriptEntry } from '@/lib/types';
 
 // Mock console methods to prevent noise in test output
 const mockConsole = {
@@ -574,4 +579,356 @@ describe('monitorPerformance()', () => {
     expect(mockConsole.log).toHaveBeenCalled();
   });
 });
+
+// T058: Transcript Export Utilities Tests
+
+describe('formatTimestampForExport() - Export Timestamp Formatter', () => {
+  test('formats timestamp for export in ISO format', () => {
+    const date = new Date('2025-10-08T14:30:45.123Z');
+    const formatted = formatTimestampForExport(date);
+    
+    // Should be in ISO format
+    expect(formatted).toBe('2025-10-08T14:30:45.123Z');
+  });
+
+  test('handles different timezones correctly', () => {
+    const date = new Date('2025-10-08T00:00:00.000Z');
+    const formatted = formatTimestampForExport(date);
+    
+    // Should preserve UTC
+    expect(formatted).toContain('T00:00:00');
+  });
+
+  test('includes milliseconds in output', () => {
+    const date = new Date('2025-10-08T14:30:45.789Z');
+    const formatted = formatTimestampForExport(date);
+    
+    expect(formatted).toContain('.789Z');
+  });
+
+  test('handles edge case of year 2000', () => {
+    const date = new Date('2000-01-01T00:00:00.000Z');
+    const formatted = formatTimestampForExport(date);
+    
+    expect(formatted).toBe('2000-01-01T00:00:00.000Z');
+  });
+});
+
+describe('exportTranscriptAsCSV() - CSV Export', () => {
+  const mockTranscriptEntries: TranscriptEntry[] = [
+    {
+      id: 'entry-1',
+      timestamp: new Date('2025-10-08T14:00:00.000Z'),
+      speakerId: 'instructor-123',
+      speakerName: 'Dr. Smith',
+      role: 'instructor',
+      text: 'Welcome to the class!',
+      sessionId: 'session-1',
+      confidence: 0.95,
+    },
+    {
+      id: 'entry-2',
+      timestamp: new Date('2025-10-08T14:01:00.000Z'),
+      speakerId: 'student-456',
+      speakerName: 'Alice',
+      role: 'student',
+      text: 'Thank you, professor!',
+      sessionId: 'session-1',
+      confidence: 0.92,
+    },
+  ];
+
+  test('exports transcript entries as CSV with header', () => {
+    const csv = exportTranscriptAsCSV(mockTranscriptEntries);
+    
+    // Should have header row
+    expect(csv).toContain('Timestamp,Speaker,Text');
+  });
+
+  test('exports all entries with correct data', () => {
+    const csv = exportTranscriptAsCSV(mockTranscriptEntries);
+    
+    // Should contain speaker names
+    expect(csv).toContain('Dr. Smith');
+    expect(csv).toContain('Alice');
+    
+    // Should contain text
+    expect(csv).toContain('Welcome to the class!');
+    expect(csv).toContain('Thank you, professor!');
+  });
+
+  test('escapes commas in text fields', () => {
+    const entriesWithCommas: TranscriptEntry[] = [
+      {
+        id: 'entry-1',
+        timestamp: new Date('2025-10-08T14:00:00.000Z'),
+        speakerId: 'instructor-123',
+        speakerName: 'Dr. Smith',
+        role: 'instructor',
+        text: 'First, second, and third points',
+        sessionId: 'session-1',
+      },
+    ];
+    
+    const csv = exportTranscriptAsCSV(entriesWithCommas);
+    
+    // Text with commas should be quoted
+    expect(csv).toContain('"First, second, and third points"');
+  });
+
+  test('escapes quotes in text fields', () => {
+    const entriesWithQuotes: TranscriptEntry[] = [
+      {
+        id: 'entry-1',
+        timestamp: new Date('2025-10-08T14:00:00.000Z'),
+        speakerId: 'instructor-123',
+        speakerName: 'Dr. Smith',
+        role: 'instructor',
+        text: 'He said "hello" to everyone',
+        sessionId: 'session-1',
+      },
+    ];
+    
+    const csv = exportTranscriptAsCSV(entriesWithQuotes);
+    
+    // Quotes should be escaped
+    expect(csv).toContain('""hello""');
+  });
+
+  test('escapes newlines in text fields', () => {
+    const entriesWithNewlines: TranscriptEntry[] = [
+      {
+        id: 'entry-1',
+        timestamp: new Date('2025-10-08T14:00:00.000Z'),
+        speakerId: 'instructor-123',
+        speakerName: 'Dr. Smith',
+        role: 'instructor',
+        text: 'Line 1\nLine 2',
+        sessionId: 'session-1',
+      },
+    ];
+    
+    const csv = exportTranscriptAsCSV(entriesWithNewlines);
+    
+    // Should be quoted to preserve newlines
+    expect(csv).toContain('"Line 1\nLine 2"');
+  });
+
+  test('handles empty transcript entries', () => {
+    const csv = exportTranscriptAsCSV([]);
+    
+    // Should still have header
+    expect(csv).toBe('Timestamp,Speaker,Text\n');
+  });
+
+  test('sorts entries chronologically', () => {
+    const unsortedEntries: TranscriptEntry[] = [
+      {
+        id: 'entry-2',
+        timestamp: new Date('2025-10-08T14:02:00.000Z'),
+        speakerId: 'student-456',
+        speakerName: 'Bob',
+        role: 'student',
+        text: 'Second message',
+        sessionId: 'session-1',
+      },
+      {
+        id: 'entry-1',
+        timestamp: new Date('2025-10-08T14:01:00.000Z'),
+        speakerId: 'student-123',
+        speakerName: 'Alice',
+        role: 'student',
+        text: 'First message',
+        sessionId: 'session-1',
+      },
+    ];
+    
+    const csv = exportTranscriptAsCSV(unsortedEntries);
+    const lines = csv.split('\n');
+    
+    // Alice's message (earlier timestamp) should come before Bob's
+    const aliceIndex = csv.indexOf('Alice');
+    const bobIndex = csv.indexOf('Bob');
+    expect(aliceIndex).toBeLessThan(bobIndex);
+  });
+});
+
+describe('exportTranscriptAsJSON() - JSON Export', () => {
+  const mockTranscriptEntries: TranscriptEntry[] = [
+    {
+      id: 'entry-1',
+      timestamp: new Date('2025-10-08T14:00:00.000Z'),
+      speakerId: 'instructor-123',
+      speakerName: 'Dr. Smith',
+      role: 'instructor',
+      text: 'Welcome!',
+      sessionId: 'session-1',
+      confidence: 0.95,
+    },
+  ];
+
+  test('exports transcript as valid JSON', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    
+    // Should be parseable
+    expect(() => JSON.parse(json)).not.toThrow();
+  });
+
+  test('includes session metadata', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.session_id).toBe('session-1');
+    expect(parsed.classroom_name).toBe('Cohort 1');
+  });
+
+  test('includes export timestamp', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.exported_at).toBeDefined();
+    expect(new Date(parsed.exported_at)).toBeInstanceOf(Date);
+  });
+
+  test('includes session start time when provided', () => {
+    const sessionStart = new Date('2025-10-08T14:00:00.000Z');
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries,
+      sessionStart
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.session_start).toBe('2025-10-08T14:00:00.000Z');
+  });
+
+  test('includes all transcript entries', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.entries).toHaveLength(1);
+    expect(parsed.entries[0].speaker_name).toBe('Dr. Smith');
+    expect(parsed.entries[0].text).toBe('Welcome!');
+  });
+
+  test('formats timestamps in entries', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.entries[0].timestamp).toBe('2025-10-08T14:00:00.000Z');
+  });
+
+  test('includes confidence scores', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      mockTranscriptEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.entries[0].confidence).toBe(0.95);
+  });
+
+  test('handles empty entries array', () => {
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      []
+    );
+    const parsed = JSON.parse(json);
+    
+    expect(parsed.entries).toEqual([]);
+  });
+
+  test('sorts entries chronologically in JSON', () => {
+    const unsortedEntries: TranscriptEntry[] = [
+      {
+        id: 'entry-2',
+        timestamp: new Date('2025-10-08T14:02:00.000Z'),
+        speakerId: 'student-456',
+        speakerName: 'Bob',
+        role: 'student',
+        text: 'Second',
+        sessionId: 'session-1',
+      },
+      {
+        id: 'entry-1',
+        timestamp: new Date('2025-10-08T14:01:00.000Z'),
+        speakerId: 'student-123',
+        speakerName: 'Alice',
+        role: 'student',
+        text: 'First',
+        sessionId: 'session-1',
+      },
+    ];
+    
+    const json = exportTranscriptAsJSON(
+      'session-1',
+      'Cohort 1',
+      unsortedEntries
+    );
+    const parsed = JSON.parse(json);
+    
+    // Alice's entry should come first (earlier timestamp)
+    expect(parsed.entries[0].speaker_name).toBe('Alice');
+    expect(parsed.entries[1].speaker_name).toBe('Bob');
+  });
+});
+
+describe('generateTranscriptFilename() - Filename Generator', () => {
+  test('generates filename with session ID and date', () => {
+    const filename = generateTranscriptFilename('session-123', 'csv');
+    
+    expect(filename).toContain('transcript-session-123');
+    expect(filename).toContain('.csv');
+  });
+
+  test('includes current date in filename', () => {
+    const filename = generateTranscriptFilename('session-123', 'json');
+    
+    // Should contain a date pattern like 2025-10-08
+    expect(filename).toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+
+  test('handles JSON format extension', () => {
+    const filename = generateTranscriptFilename('session-123', 'json');
+    
+    expect(filename).toEndWith('.json');
+  });
+
+  test('handles CSV format extension', () => {
+    const filename = generateTranscriptFilename('session-123', 'csv');
+    
+    expect(filename).toEndWith('.csv');
+  });
+
+  test('sanitizes session ID for safe filenames', () => {
+    const filename = generateTranscriptFilename('session/with/slashes', 'csv');
+    
+    // Slashes should be removed or replaced
+    expect(filename).not.toContain('/');
+  });
+});
+
 

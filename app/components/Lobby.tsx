@@ -256,7 +256,7 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
   const handleDeviceTestComplete = (selectedDevices: { audioInputId: string; videoInputId: string }) => {
     if (!user || !pendingClassroomId) return;
 
-    console.log('[Lobby] Device test complete. Selected devices:', selectedDevices);
+    // Device test complete, proceed with selected devices
 
     setShowDeviceTest(false);
     setIsLoading(true);

@@ -72,7 +72,7 @@ export default function DeviceTestModal({ isOpen, onClose, onContinue }: DeviceT
 
       setError(null);
     } catch (err) {
-      console.error('[DeviceTest] Failed to load devices:', err);
+      console.error('Failed to load audio/video devices:', err);
       setError('Unable to access camera/microphone. Please grant permissions.');
     }
   }, [selectedAudioId, selectedVideoId]);
@@ -96,8 +96,8 @@ export default function DeviceTestModal({ isOpen, onClose, onContinue }: DeviceT
       }
       if (audioContextRef.current && isAudioContextActiveRef.current) {
         if (audioContextRef.current.state !== 'closed') {
-          await audioContextRef.current.close().catch(err => {
-            console.warn('[DeviceTest] AudioContext close warning:', err);
+          await audioContextRef.current.close().catch(_err => {
+            // AudioContext close warning (expected)
           });
         }
         isAudioContextActiveRef.current = false;
@@ -140,7 +140,7 @@ export default function DeviceTestModal({ isOpen, onClose, onContinue }: DeviceT
       setIsTesting(true);
       setError(null);
     } catch (err) {
-      console.error('[DeviceTest] Failed to start audio test:', err);
+      console.error('Failed to start audio test:', err);
       setError('Failed to access microphone. Please check permissions.');
       setIsTesting(false);
     }
@@ -159,7 +159,7 @@ export default function DeviceTestModal({ isOpen, onClose, onContinue }: DeviceT
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      console.error('[DeviceTest] Failed to start video preview:', err);
+      console.error('Failed to start video preview:', err);
     }
   }, []);
 
@@ -196,8 +196,8 @@ export default function DeviceTestModal({ isOpen, onClose, onContinue }: DeviceT
     if (audioContextRef.current && isAudioContextActiveRef.current) {
       // Only close if the context is still active
       if (audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close().catch(err => {
-          console.warn('[DeviceTest] AudioContext close warning:', err);
+        audioContextRef.current.close().catch(_err => {
+          // AudioContext close warning (expected)
         });
       }
       isAudioContextActiveRef.current = false;

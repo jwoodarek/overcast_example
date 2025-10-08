@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { DailyProvider, useDaily, useParticipantIds, useLocalParticipant } from '@daily-co/daily-react';
 import { DailyCall } from '@daily-co/daily-js';
+import { useSetAtom } from 'jotai';
 import { AppUser, ConnectionState, type Classroom } from '@/lib/types';
 import { UI_CONSTANTS } from '@/lib/constants';
 import { getDailyRoomById } from '@/lib/daily-config';
@@ -13,8 +14,16 @@ import {
 } from '@/lib/daily-utils';
 import { transcriptionService } from '@/lib/services/transcription-service';
 import InstructorControls from './InstructorControls';
+import MediaControls from './MediaControls';
 import VideoFeed from './VideoFeed';
 import TranscriptMonitor from './TranscriptMonitor';
+import ChatPanel from './ChatPanel';
+import BreakoutModal from './BreakoutModal';
+// Import store atoms for cleanup (T051)
+import { mediaControlStateAtom } from '@/lib/store/media-store';
+import { activeRoomAtom, unreadCountsAtom } from '@/lib/store/chat-store';
+import { breakoutRoomsAtom } from '@/lib/store/breakout-store';
+import { layoutConfigAtom, screenShareActiveAtom } from '@/lib/store/layout-store';
 
 // Module-level singleton to prevent duplicate Daily instances
 // WHY: React strict mode causes effects to run twice, which creates duplicate Daily iframes
@@ -213,6 +222,15 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
   
+  // Atom setters for cleanup (T051)
+  // WHY: Need to reset all feature atoms when leaving classroom to prevent stale data
+  const setMediaControlState = useSetAtom(mediaControlStateAtom);
+  const setActiveRoom = useSetAtom(activeRoomAtom);
+  const setUnreadCounts = useSetAtom(unreadCountsAtom);
+  const setBreakoutRooms = useSetAtom(breakoutRoomsAtom);
+  const setLayoutConfig = useSetAtom(layoutConfigAtom);
+  const setScreenShareActive = useSetAtom(screenShareActiveAtom);
+  
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(true);
@@ -224,17 +242,34 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
   const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
   const [showTranscriptionConsent, setShowTranscriptionConsent] = useState(false);
 
+  // Breakout modal state
+  // WHY managed at Classroom level: Modal needs access to participant list from Daily
+  const [showBreakoutModal, setShowBreakoutModal] = useState(false);
+
+  // Get full participant list for breakout modal
+  // WHY: BreakoutModal needs DailyParticipant objects, not just IDs
+  const allParticipants = React.useMemo(() => {
+    if (!daily) return [];
+    const participants = daily.participants();
+    return Object.values(participants);
+  }, [daily]); // Update when daily changes
+
+  // Filter out instructors for breakout assignment
+  // WHY: Only students should be assigned to breakout rooms
+  const studentParticipants = React.useMemo(() => {
+    return allParticipants.filter(p => {
+      // Exclude local participant (instructor) and other instructors
+      const isInstructor = p.local || p.permissions?.hasPresence;
+      return !isInstructor;
+    });
+  }, [allParticipants]);
+
   // Get classroom configuration
   const classroom = getDailyRoomById(classroomId);
-  
-  console.log('[Classroom] Looking for classroom ID:', classroomId);
-  console.log('[Classroom] Found config:', classroom);
-  console.log('[Classroom] Using Daily room URL:', classroom?.url);
 
   // Join the Daily room
   const joinRoom = useCallback(async () => {
     if (!daily || !classroom) {
-      console.error('[joinRoom] Daily object or classroom not available');
       return;
     }
 
@@ -242,13 +277,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
       setIsJoining(true);
       setError(null);
       setConnectionState('connecting');
-
-      console.log('[joinRoom] Attempting to join room:', {
-        url: classroom.url,
-        userName: user.name,
-        role: user.role,
-        sessionId: user.sessionId
-      });
 
       // Configure Daily call with user settings
       await daily.join({
@@ -259,8 +287,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
           sessionId: user.sessionId
         }
       });
-      
-      console.log('[joinRoom] Join request completed successfully');
 
       // Apply audio/video settings from config
       await daily.setLocalAudio(true);
@@ -276,17 +302,9 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
       });
 
     } catch (err) {
-      console.error('[joinRoom] Failed to join Daily room:', err);
-      console.error('[joinRoom] Room URL that failed:', classroom.url);
-      console.error('[joinRoom] Error details:', {
-        error: err,
-        message: err instanceof Error ? err.message : 'Unknown error',
-        stack: err instanceof Error ? err.stack : undefined
-      });
-      
       // Use enhanced error parsing from daily-utils
       const parsedError = parseDailyError(err);
-      console.error('[joinRoom] Parsed error:', parsedError);
+      console.error('[joinRoom] Failed to join Daily room:', parsedError.message);
       setError(parsedError.message);
       setConnectionState('error');
     } finally {
@@ -308,21 +326,14 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
    */
   const startTranscription = useCallback(async () => {
     if (!transcriptionSupported) {
-      console.log('[Transcription] Not supported in this browser');
       return;
     }
 
     if (transcriptionActive) {
-      console.log('[Transcription] Already active');
       return;
     }
 
     try {
-      console.log('[Transcription] Starting capture for user:', user.name, user.role);
-      if (audioDeviceId) {
-        console.log('[Transcription] Using selected microphone:', audioDeviceId);
-      }
-      
       await transcriptionService.startCapture(
         `classroom-${classroomId}`, // Session ID with classroom prefix
         user.sessionId, // Speaker ID is user's session ID
@@ -334,7 +345,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
 
       setTranscriptionActive(true);
       setTranscriptionError(null);
-      console.log('[Transcription] Successfully started');
     } catch (err) {
       console.error('[Transcription] Failed to start:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to start transcription';
@@ -363,10 +373,8 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     }
 
     try {
-      console.log('[Transcription] Stopping capture for session:', classroomId);
       await transcriptionService.stopCapture(`classroom-${classroomId}`);
       setTranscriptionActive(false);
-      console.log('[Transcription] Successfully stopped');
     } catch (err) {
       console.error('[Transcription] Failed to stop:', err);
     }
@@ -384,10 +392,8 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     setShowTranscriptionConsent(false);
 
     if (accepted) {
-      console.log('[Transcription] User accepted consent');
       await startTranscription();
     } else {
-      console.log('[Transcription] User declined consent');
       setTranscriptionError('Transcription disabled (user declined)');
     }
   }, [startTranscription]);
@@ -405,7 +411,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     setTranscriptionSupported(supported);
     
     if (!supported) {
-      console.warn('[Transcription] Not supported in this browser. Use Chrome, Edge, or Safari for transcription features.');
       setTranscriptionError('Transcription not supported in this browser. Please use Chrome, Edge, or Safari.');
     }
   }, []);
@@ -415,7 +420,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     if (!daily) return;
 
     const handleJoinedMeeting = () => {
-      console.log('[Daily Event] Joined meeting successfully');
       setConnectionState('connected');
       setError(null);
       setIsJoining(false);
@@ -431,28 +435,23 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     };
 
     const handleLeftMeeting = () => {
-      console.log('[Daily Event] Left meeting');
       setConnectionState('disconnected');
     };
 
     const handleError = (event: unknown) => {
       const err = event as { errorMsg?: string };
-      console.error('[Daily Event] Error occurred:', event);
-      console.error('[Daily Event] Error message:', err.errorMsg);
-      console.error('[Daily Event] Full error details:', JSON.stringify(event, null, 2));
+      console.error('[Daily Event] Error occurred:', err.errorMsg || 'Connection error');
       setError(err.errorMsg || 'Connection error occurred');
       setConnectionState('error');
       setIsJoining(false);
     };
 
-    const handleParticipantJoined = (event: unknown) => {
-      const evt = event as { participant?: unknown };
-      console.log('[Daily Event] Participant joined:', evt.participant);
+    const handleParticipantJoined = (_event: unknown) => {
+      // Participant joined - handled by useParticipants hook
     };
 
-    const handleParticipantLeft = (event: unknown) => {
-      const evt = event as { participant?: unknown };
-      console.log('[Daily Event] Participant left:', evt.participant);
+    const handleParticipantLeft = (_event: unknown) => {
+      // Participant left - handled by useParticipants hook
     };
 
     // Subscribe to Daily events
@@ -475,10 +474,52 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     };
   }, [daily, joinRoom, transcriptionSupported]);
 
+  /**
+   * Cleanup all feature atoms on component unmount (T051)
+   * 
+   * WHY reset atoms:
+   * - Prevents stale data from persisting across classroom sessions
+   * - Ensures clean state when user re-enters a classroom
+   * - Avoids memory leaks from accumulated chat messages, transcripts, etc.
+   * 
+   * WHEN this runs:
+   * - When user clicks "Leave Classroom"
+   * - When component unmounts for any reason
+   * - When browser closes/navigates away
+   * 
+   * WHAT gets reset:
+   * - Media control state (mic/camera)
+   * - Chat messages and active room
+   * - Breakout room configurations
+   * - Layout preferences
+   * - Screen share state
+   */
+  useEffect(() => {
+    return () => {
+      // Reset all feature atoms to initial state
+      setMediaControlState({
+        microphoneEnabled: false,
+        cameraEnabled: false,
+        microphonePending: false,
+        cameraPending: false,
+      });
+      setActiveRoom('main');
+      setUnreadCounts({});
+      setBreakoutRooms([]);
+      setLayoutConfig({ preset: 'grid', tileSizes: new Map() });
+      setScreenShareActive(false);
+    };
+  }, [
+    setMediaControlState,
+    setActiveRoom,
+    setUnreadCounts,
+    setBreakoutRooms,
+    setLayoutConfig,
+    setScreenShareActive,
+  ]);
+
   // Handle leaving the classroom
   const handleLeave = useCallback(async () => {
-    console.log('[Daily] Leaving classroom, destroying singleton...');
-    
     // Stop transcription before leaving
     // WHY before leaving: Ensures cleanup happens before component unmounts
     // WHY important: Prevents memory leaks and stops microphone usage
@@ -491,7 +532,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
     if (dailyCallSingleton) {
       try {
         dailyCallSingleton.destroy();
-        console.log('[Daily] Singleton destroyed successfully');
       } catch (e) {
         console.error('[Daily] Error destroying singleton:', e);
       }
@@ -504,7 +544,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
 
   // Early return if classroom not found (after all hooks)
   if (!classroom) {
-    console.error('[Classroom] No configuration found for ID:', classroomId);
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
@@ -566,6 +605,14 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
                 />
               </div>
 
+              {/* Media Controls - Available to all participants (students and instructors) */}
+              {/* NOTE: Keyboard shortcuts (M/C) are implemented within MediaControls
+                  with window-level listeners and proper cleanup on unmount. They filter text inputs
+                  and work globally across the classroom interface. */}
+              <div className="border-t border-gray-700 p-4 bg-gray-900">
+                <MediaControls enabled={true} />
+              </div>
+
               {/* Instructor Controls - Only visible for instructors (T040: Role-based UI) */}
               {user.role === 'instructor' && localParticipant && hasInstructorPermissions(localParticipant) && (
                 <div className="border-t border-gray-700 p-4 bg-gray-900">
@@ -573,19 +620,35 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
                     instructor={user}
                     classroomId={classroomId}
                     enabled={true}
+                    onOpenBreakoutModal={() => setShowBreakoutModal(true)}
                   />
                 </div>
               )}
             </div>
 
-            {/* Transcript Monitor - Side Panel */}
-            {transcriptionActive && (
-              <div className="w-96 border-l border-gray-700 bg-gray-900 flex flex-col">
-                <TranscriptMonitor 
-                  sessionId={`classroom-${classroomId}`}
+            {/* Right Side Panel - Chat and optional Transcript Monitor */}
+            <div className="w-96 border-l border-gray-700 bg-gray-900 flex flex-col">
+              {/* Transcript Monitor - Only shown when transcription is active */}
+              {/* WHY max-h-64: Constrains transcript to reasonable size, prevents pushing chat off screen */}
+              {transcriptionActive && (
+                <div className="max-h-64 min-h-0 border-b border-gray-700 overflow-hidden">
+                  <TranscriptMonitor 
+                    sessionId={`classroom-${classroomId}`}
+                  />
+                </div>
+              )}
+              
+              {/* Chat Panel - Available to all participants */}
+              {/* WHY flex-1: Takes remaining space, ensures chat is always visible and usable */}
+              <div className="flex-1 min-h-0 p-4">
+                <ChatPanel
+                  sessionId={user.sessionId}
+                  userName={user.name}
+                  userRole={user.role}
+                  classroomId={classroomId}
                 />
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -622,41 +685,23 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: Classro
         onDecline={() => handleTranscriptionConsent(false)}
       />
 
-      {/* Transcription Status Indicator */}
-      {/* WHY show status: User should know if transcription is active */}
-      {transcriptionActive && (
-        <div className="fixed top-20 right-4 bg-red-600 text-white px-3 py-2 rounded-lg shadow-lg z-40">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium">Transcription Active</span>
-          </div>
-          <button
-            onClick={async () => {
-              console.log('[DEBUG] Manual transcription test');
-              console.log('[DEBUG] transcriptionActive:', transcriptionActive);
-              console.log('[DEBUG] transcriptionSupported:', transcriptionSupported);
-              console.log('[DEBUG] classroomId:', classroomId);
-              console.log('[DEBUG] user:', user);
-              
-              // Try to restart transcription
-              await stopTranscription();
-              setTimeout(async () => {
-                await startTranscription();
-              }, 500);
-            }}
-            className="mt-1 text-xs underline hover:text-white/80"
-          >
-            Restart Transcription
-          </button>
-        </div>
-      )}
-
       {/* Transcription Error Indicator */}
       {/* WHY show errors: User needs to know if transcription failed */}
       {transcriptionError && !transcriptionActive && (
         <div className="fixed top-20 right-4 bg-yellow-600 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-40">
           <span className="text-sm">⚠️ {transcriptionError}</span>
         </div>
+      )}
+
+      {/* Breakout Modal - Managed at Classroom level (T049) */}
+      {/* WHY at this level: Needs access to participant list from Daily */}
+      {user.role === 'instructor' && (
+        <BreakoutModal
+          isOpen={showBreakoutModal}
+          onClose={() => setShowBreakoutModal(false)}
+          participants={studentParticipants}
+          sessionId={classroomId}
+        />
       )}
     </div>
   );
@@ -676,11 +721,8 @@ export default function Classroom({ classroomId, user, onLeave, audioDeviceId, v
 
     const initializeDaily = async () => {
       try {
-        console.log('[Daily] Checking for existing singleton...');
-        
         // If singleton already exists and is valid, reuse it
         if (dailyCallSingleton) {
-          console.log('[Daily] Reusing existing singleton instance');
           if (mounted) {
             callRef.current = dailyCallSingleton;
             setDailyCall(dailyCallSingleton);
@@ -690,7 +732,6 @@ export default function Classroom({ classroomId, user, onLeave, audioDeviceId, v
 
         // If initialization is already in progress, wait for it
         if (initializationPromise) {
-          console.log('[Daily] Waiting for ongoing initialization...');
           const call = await initializationPromise;
           if (mounted) {
             callRef.current = call;
@@ -700,19 +741,16 @@ export default function Classroom({ classroomId, user, onLeave, audioDeviceId, v
         }
 
         // Start new initialization
-        console.log('[Daily] Starting new initialization...');
         initializationPromise = (async () => {
           // Dynamic import to avoid SSR issues
           const Daily = (await import('@daily-co/daily-js')).default;
           
-          console.log('[Daily] Creating call object...');
           const call = Daily.createCallObject({
             // Apply configuration from constants
             audioSource: true,
             videoSource: true
           });
 
-          console.log('[Daily] Call object created successfully');
           dailyCallSingleton = call;
           return call;
         })();
@@ -734,7 +772,6 @@ export default function Classroom({ classroomId, user, onLeave, audioDeviceId, v
 
     // Cleanup function - don't destroy singleton, just clear local ref
     return () => {
-      console.log('[Daily] Component unmounting, clearing local ref');
       mounted = false;
       callRef.current = null;
       // Note: We DON'T destroy the singleton here because other components might be using it

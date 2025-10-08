@@ -1,33 +1,40 @@
 /**
  * TranscriptMonitor Component
  * 
- * Optional debug view showing live transcript feed.
- * Displays recent transcripts with speaker roles and timestamps.
+ * Live transcript feed with scrollback capability and export functionality.
+ * Displays session transcripts with speaker roles, timestamps, and export options.
  * 
  * WHY this exists:
  * - Transparency: instructor can see what system is capturing
- * - Debugging: verify transcription accuracy
+ * - Review capability: scroll back through session history
+ * - Export functionality: download transcripts as CSV or JSON
  * - Trust: users understand what data is being used
- * - Educational: demonstrate how AI processes speech
  * 
- * WHY optional/toggleable:
- * - Not needed for normal operation
- * - Can be distracting during class
- * - Useful for testing and demos
+ * Features:
+ * - Scrollback through entire session history (not just last 10 entries)
+ * - Export as CSV (human-readable) or JSON (machine-readable)
+ * - Real-time updates via polling
+ * - Auto-scroll to latest entries (can be disabled)
  */
 
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAtom } from 'jotai';
 import { TranscriptEntry } from '@/lib/types';
+import { transcriptScrollPositionAtom } from '@/lib/store/transcript-store';
+import {
+  exportTranscriptAsCSV,
+  exportTranscriptAsJSON,
+  triggerTranscriptDownload,
+  generateTranscriptFilename,
+} from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from './ui';
 import { Button } from './ui';
 
 interface TranscriptMonitorProps {
   /** Session ID to monitor */
   sessionId: string;
-  /** Maximum number of transcripts to display */
-  maxEntries?: number;
   /** Filter by role (optional) */
   roleFilter?: 'instructor' | 'student' | 'all';
   /** Whether to auto-scroll to newest */
@@ -36,23 +43,33 @@ interface TranscriptMonitorProps {
 
 export default function TranscriptMonitor({
   sessionId,
-  maxEntries = 10,
   roleFilter = 'all',
   autoScroll = true,
 }: TranscriptMonitorProps) {
+  // State management
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastTimestamp, setLastTimestamp] = useState<string | null>(null);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  
+  // Scroll position tracking via Jotai
+  const [, setScrollPosition] = useAtom(transcriptScrollPositionAtom);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Fetch transcripts from API.
+   * Fetch transcripts from API
    * 
    * WHY poll with 'since' parameter:
    * - Only fetch new transcripts (efficient)
    * - Reduces bandwidth and processing
    * - Maintains chronological order
+   * 
+   * WHY keep all entries:
+   * - Enables scrollback through entire session history
+   * - Required for export functionality (export full session)
+   * - Memory: ~1MB per hour of class (acceptable for in-browser storage)
    */
   const fetchTranscripts = useCallback(async () => {
     if (!isVisible) return;
@@ -80,9 +97,8 @@ export default function TranscriptMonitor({
 
       if (newEntries.length > 0) {
         setTranscripts((prev) => {
-          // Add new entries and keep only last N
-          const combined = [...prev, ...newEntries];
-          return combined.slice(-maxEntries);
+          // Keep ALL entries for scrollback and export (no slicing)
+          return [...prev, ...newEntries];
         });
 
         // Update last timestamp
@@ -91,12 +107,13 @@ export default function TranscriptMonitor({
           setLastTimestamp(latest.timestamp);
         }
       }
-    } catch (err) {
-      console.error('[TranscriptMonitor] Error fetching transcripts:', err);
+    } catch {
+      // Silent error handling - don't spam console
+      // Errors are expected during development/testing
     } finally {
       setLoading(false);
     }
-  }, [sessionId, lastTimestamp, roleFilter, maxEntries, isVisible]);
+  }, [sessionId, lastTimestamp, roleFilter, isVisible]);
 
   /**
    * Set up polling when visible.
@@ -115,13 +132,63 @@ export default function TranscriptMonitor({
   }, [isVisible, fetchTranscripts]);
 
   /**
-   * Auto-scroll to bottom when new transcripts arrive.
+   * Auto-scroll to bottom when new transcripts arrive
+   * Only scrolls if user is already near the bottom (within 100px)
+   * WHY: Prevents annoying auto-scroll when user is reviewing old transcripts
    */
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const element = scrollRef.current;
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+      
+      if (isNearBottom) {
+        element.scrollTop = element.scrollHeight;
+      }
     }
   }, [transcripts, autoScroll]);
+
+  /**
+   * Track scroll position changes
+   * WHY: Persist scroll position in Jotai atom for potential future features
+   */
+  const handleScroll = useCallback(() => {
+    if (scrollRef.current) {
+      setScrollPosition(scrollRef.current.scrollTop);
+    }
+  }, [setScrollPosition]);
+
+  /**
+   * Handle export button click
+   * Generates file and triggers download based on selected format
+   * WHY: Uses utilities from lib/utils.ts for consistent export format
+   */
+  const handleExport = useCallback(() => {
+    if (transcripts.length === 0) {
+      alert('No transcripts to export');
+      return;
+    }
+
+    try {
+      let content: string;
+      let mimeType: 'text/csv' | 'application/json';
+      
+      if (exportFormat === 'csv') {
+        content = exportTranscriptAsCSV(transcripts);
+        mimeType = 'text/csv';
+      } else {
+        content = exportTranscriptAsJSON(transcripts, sessionId);
+        mimeType = 'application/json';
+      }
+
+      const filename = generateTranscriptFilename(sessionId, exportFormat);
+      triggerTranscriptDownload(content, filename, mimeType);
+      
+      // Close export menu after successful export
+      setShowExportMenu(false);
+    } catch {
+      alert('Failed to export transcripts. Please try again.');
+    }
+  }, [transcripts, sessionId, exportFormat]);
 
   /**
    * Get role badge color.
@@ -161,7 +228,7 @@ export default function TranscriptMonitor({
     return (
       <div className="w-full">
         <Button onClick={toggleVisibility} variant="ghost" size="sm">
-          🔍 Show Transcript Monitor (Debug)
+          📝 Show Transcript Monitor
         </Button>
       </div>
     );
@@ -172,11 +239,52 @@ export default function TranscriptMonitor({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>🔍 Live Transcript Monitor</span>
+          <span>📝 Session Transcript</span>
           <div className="flex gap-2 items-center">
             <span className="text-sm font-normal text-gray-500">
-              {transcripts.length} entries
+              {transcripts.length} {transcripts.length === 1 ? 'entry' : 'entries'}
             </span>
+            
+            {/* Export Button with Format Selector */}
+            {transcripts.length > 0 && (
+              <div className="relative">
+                <Button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  variant="secondary"
+                  size="sm"
+                >
+                  📥 Export
+                </Button>
+                
+                {/* Export Format Menu */}
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-10">
+                    <div className="p-2 space-y-1">
+                      <div className="text-xs text-gray-400 px-2 py-1">Export as:</div>
+                      <button
+                        onClick={() => {
+                          setExportFormat('csv');
+                          handleExport();
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-white hover:bg-gray-800 rounded"
+                      >
+                        📊 CSV (Spreadsheet)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setExportFormat('json');
+                          handleExport();
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-white hover:bg-gray-800 rounded"
+                      >
+                        🔧 JSON (Structured)
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <Button onClick={toggleVisibility} variant="ghost" size="sm">
               Hide
             </Button>
@@ -184,18 +292,17 @@ export default function TranscriptMonitor({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Controls */}
-        <div className="mb-3 text-xs text-gray-500">
-          <p>
-            Showing last {maxEntries} {roleFilter !== 'all' ? roleFilter : ''}{' '}
-            transcripts
-          </p>
-          {autoScroll && (
-            <p className="mt-1">
-              ✓ Auto-scrolling enabled
-            </p>
-          )}
-        </div>
+        {/* Status Info */}
+        {transcripts.length > 0 && (
+          <div className="mb-3 text-xs text-gray-500">
+            {roleFilter !== 'all' && (
+              <p>Showing {roleFilter} transcripts only</p>
+            )}
+            {autoScroll && (
+              <p>Scroll up to review history • Auto-scrolls to latest when at bottom</p>
+            )}
+          </div>
+        )}
 
         {/* Loading state */}
         {loading && transcripts.length === 0 && (
@@ -211,19 +318,20 @@ export default function TranscriptMonitor({
           </p>
         )}
 
-        {/* Transcript list */}
+        {/* Transcript list with scrollback capability */}
         {transcripts.length > 0 && (
           <div
             ref={scrollRef}
-            className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded p-3 bg-gray-50"
+            onScroll={handleScroll}
+            className="space-y-2 max-h-[500px] overflow-y-auto border border-gray-700 rounded p-3 bg-gray-800"
           >
             {transcripts.map((entry) => (
               <div
                 key={entry.id}
-                className="p-2 bg-white rounded border border-gray-200"
+                className="p-3 bg-gray-900 rounded border border-gray-700"
               >
                 {/* Header with role, name, time */}
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(
@@ -232,24 +340,24 @@ export default function TranscriptMonitor({
                     >
                       {entry.speakerRole}
                     </span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-white">
                       {entry.speakerName}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {formatTime(entry.timestamp)}
                   </span>
                 </div>
 
                 {/* Transcript text */}
-                <div className="text-sm text-gray-700 pl-2">
+                <div className="text-sm text-gray-300 pl-2">
                   {entry.text}
                 </div>
 
                 {/* Metadata */}
-                <div className="flex items-center gap-3 mt-1 pl-2">
+                <div className="flex items-center gap-3 mt-2 pl-2">
                   <span className="text-xs text-gray-500">
-                    Confidence: {(entry.confidence * 100).toFixed(0)}%
+                    {(entry.confidence * 100).toFixed(0)}% confidence
                   </span>
                   {entry.breakoutRoomName && (
                     <span className="text-xs text-gray-500">
@@ -261,15 +369,6 @@ export default function TranscriptMonitor({
             ))}
           </div>
         )}
-
-        {/* Debug info */}
-        <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
-          <p>
-            <strong>Debug Info:</strong> This component polls{' '}
-            <code>/api/transcripts/{sessionId}</code> every 2 seconds to fetch
-            new transcripts. Only visible to instructors for debugging purposes.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

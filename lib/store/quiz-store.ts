@@ -144,3 +144,86 @@ export class QuizStore {
   }
 }
 
+// ============================================================================
+// Jotai Atoms for Quiz State Management (Client-side)
+// ============================================================================
+// WHY Jotai atoms alongside class-based store:
+// - Class-based store is for server-side API routes (in-memory persistence)
+// - Jotai atoms are for client-side React components (reactive state)
+// - Instructor UI needs reactive updates for quiz status changes
+// - Telemetry tracking needs to be visible in real-time to the instructor
+
+import { atom } from 'jotai';
+
+/**
+ * QuizStatus represents the lifecycle state of a quiz in the UI
+ * 
+ * WHY separate from Quiz type:
+ * - Quiz is the full data structure (questions, answers, etc.)
+ * - QuizStatus is lightweight metadata for instructor visibility
+ * - Status can be updated without reloading entire quiz
+ */
+export interface QuizStatus {
+  quizId: string;                    // Unique identifier
+  phase: 'pending' | 'active' | 'completed'; // Current lifecycle phase
+  createdAt: Date;                   // When quiz was generated
+  startedAt?: Date;                  // When quiz became active (optional)
+  endedAt?: Date;                    // When quiz ended (optional)
+  transcriptSegmentId?: string;      // Reference to source transcript (optional)
+  questionCount: number;             // Number of questions in quiz
+  deliveredToCount: number;          // How many students received quiz
+  viewedByCount: number;             // How many students opened quiz
+}
+
+/**
+ * QuizTelemetryEvent tracks lifecycle events for instructor verification
+ * 
+ * WHY telemetry:
+ * - Instructors need to confirm quiz actually ran ("did my quiz work?")
+ * - Provides audit trail for testing and troubleshooting
+ * - Simple event log, no complex analytics (MVP approach)
+ */
+export interface QuizTelemetryEvent {
+  quizId: string;                    // Which quiz this event is for
+  eventType: 'created' | 'started' | 'ended' | 'delivered' | 'viewed'; // Event type
+  timestamp: Date;                   // When event occurred
+  metadata?: Record<string, unknown>; // Optional context data
+}
+
+/**
+ * Active quiz atom - tracks the currently active quiz (if any)
+ * 
+ * WHY single active quiz:
+ * - Instructors can only have one quiz running at a time (keeps UI simple)
+ * - null when no quiz is active (default state)
+ * - Updated when quiz starts or ends
+ */
+export const activeQuizAtom = atom<QuizStatus | null>(null);
+
+/**
+ * Quiz history atom - stores all quizzes from the current session
+ * 
+ * WHY array:
+ * - Instructor can review past quizzes during session
+ * - Ordered chronologically (newest last)
+ * - Cleared when session ends (in-memory only)
+ */
+export const quizHistoryAtom = atom<QuizStatus[]>([]);
+
+/**
+ * Quiz telemetry atom - logs all quiz lifecycle events
+ * 
+ * WHY separate from history:
+ * - History is for quiz metadata (one entry per quiz)
+ * - Telemetry is for events (multiple entries per quiz: created, started, ended, etc.)
+ * - Enables instructor to see detailed timeline of what happened
+ * 
+ * Example telemetry flow:
+ * 1. created event → quiz generated from transcript
+ * 2. started event → instructor activated quiz
+ * 3. delivered events → each student received quiz
+ * 4. viewed events → each student opened quiz
+ * 5. ended event → instructor or timer ended quiz
+ */
+export const quizTelemetryAtom = atom<QuizTelemetryEvent[]>([]);
+

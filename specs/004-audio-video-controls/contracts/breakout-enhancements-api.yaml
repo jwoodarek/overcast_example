@@ -1,0 +1,292 @@
+openapi: 3.0.3
+info:
+  title: Breakout Room Enhancements API
+  description: Fixes and enhancements to breakout room creation and management
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /breakout-rooms:
+    post:
+      summary: Create breakout rooms with participant assignments
+      description: |
+        Creates multiple breakout rooms and assigns participants to them. 
+        Fixes the existing broken implementation to properly work with Daily.co API.
+        Supports 1-10 simultaneous breakout rooms per session.
+      operationId: createBreakoutRooms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - rooms
+              properties:
+                sessionId:
+                  type: string
+                  description: Classroom session identifier
+                  example: "abc-123-session"
+                rooms:
+                  type: array
+                  minItems: 1
+                  maxItems: 10
+                  description: Array of breakout room configurations
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - participantIds
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 100
+                        description: Display name for breakout room
+                        example: "Group A"
+                      participantIds:
+                        type: array
+                        description: Participant session IDs to assign to this room
+                        items:
+                          type: string
+                        example: ["participant-1", "participant-2"]
+      responses:
+        '201':
+          description: Breakout rooms created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BreakoutRoom'
+                  message:
+                    type: string
+                    example: "3 breakout rooms created"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                tooManyRooms:
+                  value:
+                    error: "Cannot create more than 10 breakout rooms"
+                duplicateParticipant:
+                  value:
+                    error: "Participant participant-1 assigned to multiple rooms"
+                invalidParticipant:
+                  value:
+                    error: "Participant participant-xyz not found in session"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      summary: Get active breakout rooms for a session
+      description: Returns list of all active breakout rooms with current participant assignments
+      operationId: getBreakoutRooms
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Classroom session identifier
+      responses:
+        '200':
+          description: Breakout rooms retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BreakoutRoom'
+                  activeCount:
+                    type: integer
+                    description: Number of active breakout rooms
+                    example: 3
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /breakout-rooms/{roomId}:
+    delete:
+      summary: Close a breakout room
+      description: Closes a breakout room and returns participants to main room
+      operationId: closeBreakoutRoom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Breakout room ID to close
+      responses:
+        '200':
+          description: Breakout room closed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Breakout room closed, 5 participants returned to main room"
+                  participantsReturned:
+                    type: integer
+                    description: Number of participants moved back to main room
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Reassign participants in a breakout room
+      description: Modifies participant assignments for an existing breakout room
+      operationId: reassignBreakoutParticipants
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Breakout room ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - participantIds
+              properties:
+                participantIds:
+                  type: array
+                  description: New participant list (replaces existing)
+                  items:
+                    type: string
+                  example: ["participant-1", "participant-3", "participant-5"]
+      responses:
+        '200':
+          description: Participants reassigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  room:
+                    $ref: '#/components/schemas/BreakoutRoom'
+                  message:
+                    type: string
+                    example: "Participants reassigned"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    BreakoutRoom:
+      type: object
+      required:
+        - id
+        - name
+        - dailyRoomUrl
+        - participantIds
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique room identifier
+          example: "breakout-uuid-123"
+        name:
+          type: string
+          description: Display name
+          example: "Group A"
+        dailyRoomUrl:
+          type: string
+          format: uri
+          description: Daily.co room URL for this breakout
+          example: "https://example.daily.co/breakout-abc123"
+        participantIds:
+          type: array
+          description: Participant session IDs assigned to room
+          items:
+            type: string
+          example: ["participant-1", "participant-2"]
+        status:
+          type: string
+          enum: [active, closed]
+          description: Current room state
+        createdAt:
+          type: string
+          format: date-time
+          description: When room was created
+        closedAt:
+          type: string
+          format: date-time
+          description: When room was closed (null if active)
+          nullable: true
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+tags:
+  - name: breakout-rooms
+    description: Breakout room management operations
+

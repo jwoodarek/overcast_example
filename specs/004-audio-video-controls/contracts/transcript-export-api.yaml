@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Transcript Export API
+  description: Export transcript in CSV or JSON format for instructor download
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /transcripts/{sessionId}/export:
+    get:
+      summary: Export transcript in specified format
+      description: |
+        Generates a downloadable transcript file in CSV or JSON format.
+        Includes all transcript entries from the session with timestamps and speaker attribution.
+        Response uses Content-Disposition header to trigger browser download.
+      operationId: exportTranscript
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Classroom session identifier
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [csv, json]
+          description: Export format
+          example: "csv"
+        - name: requesterId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Participant session ID (authorization - must be instructor)
+      responses:
+        '200':
+          description: Transcript file generated successfully
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Filename for download
+              example: 'attachment; filename="transcript-abc-123-20251008.csv"'
+            Content-Type:
+              schema:
+                type: string
+              description: MIME type based on format
+              example: 'text/csv' # or 'application/json'
+          content:
+            text/csv:
+              schema:
+                type: string
+                description: CSV content with headers (Timestamp,Speaker,Text)
+                example: |
+                  Timestamp,Speaker,Text
+                  2025-10-08T14:23:45.123Z,Professor Smith (Instructor),Welcome to class
+                  2025-10-08T14:23:52.456Z,Alice (Student),Thank you professor
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranscriptExport'
+        '400':
+          description: Bad request - invalid format or parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid format. Must be 'csv' or 'json'"
+        '403':
+          description: Forbidden - requester is not an instructor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Only instructors can export transcripts"
+        '404':
+          description: Session not found or no transcript available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "No transcript found for session abc-123"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TranscriptExport:
+      type: object
+      required:
+        - session_id
+        - session_start
+        - exported_at
+        - transcript
+      properties:
+        session_id:
+          type: string
+          description: Classroom session identifier
+          example: "abc-123-session"
+        session_start:
+          type: string
+          format: date-time
+          description: When session began
+          example: "2025-10-08T14:00:00.000Z"
+        exported_at:
+          type: string
+          format: date-time
+          description: When export was generated
+          example: "2025-10-08T15:30:00.000Z"
+        transcript:
+          type: array
+          description: Array of transcript entries
+          items:
+            $ref: '#/components/schemas/TranscriptEntry'
+
+    TranscriptEntry:
+      type: object
+      required:
+        - timestamp
+        - speaker_id
+        - speaker_name
+        - role
+        - text
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: When words were spoken
+          example: "2025-10-08T14:23:45.123Z"
+        speaker_id:
+          type: string
+          description: Participant session ID
+          example: "participant-instructor-001"
+        speaker_name:
+          type: string
+          description: Display name
+          example: "Professor Smith"
+        role:
+          type: string
+          enum: [instructor, student]
+          description: Speaker's role
+        text:
+          type: string
+          description: Transcribed content
+          example: "Welcome to today's class"
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Transcription confidence score (optional)
+          example: 0.95
+          nullable: true
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+tags:
+  - name: transcripts
+    description: Transcript export operations
+

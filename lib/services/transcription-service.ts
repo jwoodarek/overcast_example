@@ -122,18 +122,14 @@ class WebSpeechProvider implements TranscriptionProvider {
     // - Can't have both getUserMedia stream AND speech recognition active simultaneously
     if (audioDeviceId) {
       try {
-        console.log(`[Transcription] Verifying microphone access: ${audioDeviceId}`);
         const testStream = await navigator.mediaDevices.getUserMedia({
           audio: { deviceId: { exact: audioDeviceId } }
         });
-        console.log('[Transcription] Microphone access verified, releasing for speech recognition...');
         // Immediately stop the stream so Web Speech API can use the microphone
         testStream.getTracks().forEach(track => track.stop());
-      } catch (error) {
-        console.warn('[Transcription] Failed to access specific microphone:', error);
+      } catch {
         // Try without exact device constraint (might work with default)
         try {
-          console.log('[Transcription] Trying default microphone...');
           const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           testStream.getTracks().forEach(track => track.stop());
         } catch {
@@ -170,16 +166,9 @@ class WebSpeechProvider implements TranscriptionProvider {
         const result = event.results[i];
         const transcript = result[0].transcript.trim();
         
-        // Log interim results for debugging (but don't store them)
-        if (!result.isFinal) {
-          console.log(`[Transcription] Interim: "${transcript}"`);
-        }
-        
         // Only store final results (interim results are for UI feedback only)
         if (result.isFinal && this.activeSession) {
           const confidence = result[0].confidence;
-
-          console.log(`[Transcript] ✅ FINAL: ${this.activeSession.speakerName} (${this.activeSession.speakerRole}): "${transcript}" [confidence: ${confidence.toFixed(2)}]`);
 
           // Send transcript to server API for storage
           // WHY POST to server:
@@ -206,21 +195,19 @@ class WebSpeechProvider implements TranscriptionProvider {
 
     // Handle errors
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('[Transcription Error]', event.error, event.message);
-      
       // WHY specific error handling: Different errors need different user messages
       switch (event.error) {
         case 'not-allowed':
-          console.error('Microphone permission denied. Please allow microphone access to enable transcription.');
+          console.error('Microphone permission denied');
           break;
         case 'no-speech':
           // This is normal - user just isn't speaking
           break;
         case 'network':
-          console.error('Network error during transcription. Speech recognition may use network services.');
+          console.error('Network error during transcription');
           break;
         case 'audio-capture':
-          console.error('No microphone detected or audio capture failed.');
+          console.error('No microphone detected or audio capture failed');
           break;
         default:
           console.error(`Transcription error: ${event.error}`);
@@ -229,7 +216,7 @@ class WebSpeechProvider implements TranscriptionProvider {
 
     // Handle start of recognition
     recognition.onstart = () => {
-      console.log('[Transcription] 🎤 Speech recognition is now LISTENING for audio...');
+      // Recognition started successfully
     };
 
     // Handle end of recognition (auto-restart)
@@ -238,27 +225,23 @@ class WebSpeechProvider implements TranscriptionProvider {
       // Only restart if we still have an active session
       if (this.activeSession && this.recognition) {
         try {
-          console.log('[Transcription] Restarting speech recognition...');
           this.recognition.start();
         } catch (error) {
           // If already started, ignore the error
           if ((error as Error).message.includes('already started')) {
             // Expected in some cases
           } else {
-            console.error('[Transcription] Failed to restart:', error);
+            console.error('Failed to restart transcription:', error);
           }
         }
-      } else {
-        console.log('[Transcription] Session ended, not restarting');
       }
     };
 
     // Start recognition
     try {
       recognition.start();
-      console.log(`[Transcription] Started capturing for ${speakerName} (${speakerRole}) in session ${sessionId}`);
     } catch (error) {
-      console.error('[Transcription] Failed to start:', error);
+      console.error('Failed to start transcription:', error);
       throw new Error(`Failed to start speech recognition: ${(error as Error).message}`);
     }
   }
@@ -272,8 +255,6 @@ class WebSpeechProvider implements TranscriptionProvider {
       // WHY: This releases the microphone so other apps can use it
       this.recognition.stop();
       this.recognition = null;
-      
-      console.log(`[Transcription] Stopped capturing for session ${sessionId}`);
     }
   }
 }
