@@ -10,6 +10,8 @@ interface ModalProps {
   onClose: () => void;
   /** Modal title */
   title?: string;
+  /** Modal description */
+  description?: string;
   /** Modal content */
   children: React.ReactNode;
   /** Modal size */
@@ -39,6 +41,7 @@ export default function Modal({
   isOpen,
   onClose,
   title,
+  description,
   children,
   size = 'md',
   closeOnOverlayClick = true,
@@ -102,6 +105,7 @@ export default function Modal({
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         onClick={handleOverlayClick}
         aria-hidden="true"
+        data-testid="modal-overlay"
       />
       
       {/* Modal Content */}
@@ -111,21 +115,32 @@ export default function Modal({
           sizeStyles[size],
           className
         )}
+        data-testid="modal-content"
       >
         {/* Header */}
-        {title && (
+        {(title || description) && (
           <div className="flex items-center justify-between p-6 border-b border-gray-700">
-            <h2 
-              id="modal-title"
-              className="text-lg font-semibold text-teal-400"
-            >
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-md hover:bg-gray-800"
-              aria-label="Close modal"
-            >
+            <div className="flex-1">
+              {title && (
+                <h2 
+                  id="modal-title"
+                  className="text-lg font-semibold text-teal-400"
+                >
+                  {title}
+                </h2>
+              )}
+              {description && (
+                <p className="text-sm text-gray-400 mt-1">
+                  {description}
+                </p>
+              )}
+            </div>
+            {title && (
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-md hover:bg-gray-800 ml-4"
+                aria-label="Close modal"
+              >
               <svg 
                 className="w-5 h-5" 
                 fill="none" 
@@ -139,7 +154,8 @@ export default function Modal({
                   d="M6 18L18 6M6 6l12 12" 
                 />
               </svg>
-            </button>
+              </button>
+            )}
           </div>
         )}
         

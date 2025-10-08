@@ -78,19 +78,8 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { roomId } = await params;
 
-    // Validate room ID (must be 1-6)
-    if (!roomId || !['1', '2', '3', '4', '5', '6'].includes(roomId)) {
-      return NextResponse.json(
-        {
-          error: 'Bad Request',
-          message: 'Invalid classroom ID. Must be between 1 and 6.',
-          code: 'INVALID_ROOM_ID'
-        },
-        { status: 400 }
-      );
-    }
-
     // Get room configuration
+    // WHY: Return 404 for any room ID that doesn't exist (invalid format or not found)
     const room = getDailyRoomById(roomId);
     
     if (!room) {

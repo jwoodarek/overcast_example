@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useDaily } from '@daily-co/daily-react';
 import { DailyParticipant } from '@daily-co/daily-js';
 import { AppUser, MuteParticipantRequest, MuteAllParticipantsRequest, CreateBreakoutRoomRequest } from '@/lib/types';
+import AlertPanel from './AlertPanel';
 
 interface InstructorControlsProps {
   /** Current instructor user information */
@@ -329,6 +330,15 @@ export default function InstructorControls({
         >
           Create Breakout Room
         </button>
+      </div>
+
+      {/* Help Alerts Panel - WHY: Shows student confusion indicators in real-time */}
+      <div className="mt-4">
+        <AlertPanel
+          classroomSessionId={`classroom-${classroomId}`}
+          instructorId={instructor.sessionId}
+          showOnlyPending={true}
+        />
       </div>
 
       {/* Breakout Room Modal */}

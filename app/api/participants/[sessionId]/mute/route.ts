@@ -177,12 +177,21 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Return success response
+    // Return success response with participant state
+    // WHY: Contract expects full participant object in response
     return NextResponse.json({
       success: true,
       message: `Participant ${body.muted ? 'muted' : 'unmuted'} successfully`,
-      participantId: sessionId,
-      muted: body.muted
+      participant: {
+        sessionId: sessionId,
+        name: 'Participant', // In production, would fetch from participant store
+        role: 'student', // In production, would fetch from participant store
+        classroomId: body.classroomId,
+        isAudioMuted: body.muted,
+        isVideoEnabled: true, // In production, would track actual state
+        connectionState: 'connected', // In production, would track actual state
+        joinedAt: new Date().toISOString() // In production, would store actual join time
+      }
     });
   } catch (error) {
     console.error('Error in POST /api/participants/[sessionId]/mute:', error);

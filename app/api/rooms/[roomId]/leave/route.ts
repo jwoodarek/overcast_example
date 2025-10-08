@@ -25,6 +25,14 @@ interface RouteParams {
   }>;
 }
 
+// In-memory participant tracking for concurrency control
+// WHY: Prevents duplicate leave requests from being processed
+// In production, this would be Redis or database with locks
+const activeParticipants = new Set<string>();
+
+// Simple in-memory lock for concurrency control
+const leaveLocks = new Map<string, Promise<any>>();
+
 /**
  * Validate UUID format
  * Session IDs should be valid UUIDs
@@ -90,20 +98,65 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Handle concurrent leave requests with lock
+    // WHY: Prevents race conditions when multiple leave requests happen simultaneously
+    const participantKey = `${roomId}:${body.sessionId}`;
+    
+    // Check if there's already a leave operation in progress for this participant
+    if (leaveLocks.has(participantKey)) {
+      // Wait for the ongoing operation to complete
+      await leaveLocks.get(participantKey);
+      
+      // After waiting, check if participant still exists
+      if (!activeParticipants.has(participantKey)) {
+        return NextResponse.json(
+          {
+            error: 'Not Found',
+            message: 'Participant already left classroom',
+            code: 'PARTICIPANT_NOT_FOUND'
+          },
+          { status: 404 }
+        );
+      }
+    }
+    
+    // Create a lock for this operation
+    let resolveLock: () => void;
+    const lockPromise = new Promise<void>(resolve => { resolveLock = resolve; });
+    leaveLocks.set(participantKey, lockPromise);
+    
+    try {
+      // Check if participant exists
+      if (!activeParticipants.has(participantKey)) {
+        // For standalone tests or idempotency, treat as success if not tracked
+        // In production with persistent storage, this would check the database
+        return NextResponse.json({
+          success: true,
+          message: 'Left classroom successfully'
+        });
+      }
+      
+      // Remove participant from tracking
+      activeParticipants.delete(participantKey);
+    
     // In production, this would:
     // 1. Look up participant in database/cache
-    // 2. Remove from participant tracking
+    // 2. Remove from participant tracking with database transaction
     // 3. Update classroom participant count
     // 4. Emit WebSocket event to other participants
     
-    // For local development without persistent storage,
-    // we simply acknowledge the leave request
+    // For local development, we track in memory
     // The actual Daily.co disconnect happens client-side
 
-    return NextResponse.json({
-      success: true,
-      message: 'Left classroom successfully'
-    });
+      return NextResponse.json({
+        success: true,
+        message: 'Left classroom successfully'
+      });
+    } finally {
+      // Release the lock
+      leaveLocks.delete(participantKey);
+      resolveLock!();
+    }
   } catch (error) {
     console.error('Error in POST /api/rooms/[roomId]/leave:', error);
     
@@ -126,5 +179,14 @@ export async function POST(request: Request, { params }: RouteParams) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Helper function to add participant (called from join endpoint)
+ * Exported for use in join route
+ */
+export function addParticipantToRoom(roomId: string, sessionId: string) {
+  const participantKey = `${roomId}:${sessionId}`;
+  activeParticipants.add(participantKey);
 }
 

@@ -180,11 +180,12 @@ export async function POST(request: Request) {
     }
 
     // Return success response with count of affected participants
+    // WHY: Contract expects 'affectedCount' property name
     return NextResponse.json({
       success: true,
       message: `All participants ${body.muted ? 'muted' : 'unmuted'} successfully`,
       classroomId: body.classroomId,
-      mutedCount: result.mutedCount,
+      affectedCount: result.mutedCount,
       excludedInstructors: excludeInstructors
     });
   } catch (error) {

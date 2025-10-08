@@ -5,9 +5,10 @@ import { DAILY_ROOMS } from '@/lib/daily-config';
 import { UI_CONSTANTS } from '@/lib/constants';
 import { Classroom, AppUser } from '@/lib/types';
 import { isClassroomFull, validateUserName } from '@/lib/daily-utils';
+import DeviceTestModal from './DeviceTestModal';
 
 interface LobbyProps {
-  onJoinClassroom: (classroomId: string, user: AppUser) => void;
+  onJoinClassroom: (classroomId: string, user: AppUser, selectedDevices?: { audioInputId: string; videoInputId: string }) => void;
 }
 
 interface ClassroomCardProps {
@@ -177,6 +178,8 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
   const [classroomStates, setClassroomStates] = useState<Record<string, { participantCount: number; isActive: boolean }>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClassroom, setSelectedClassroom] = useState<string | null>(null);
+  const [showDeviceTest, setShowDeviceTest] = useState(false);
+  const [pendingClassroomId, setPendingClassroomId] = useState<string | null>(null);
 
   // Convert DAILY_ROOMS to Classroom interface format
   const classrooms: Classroom[] = DAILY_ROOMS.map(room => ({
@@ -245,25 +248,39 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
       return;
     }
 
+    // Show device test modal before joining
+    setPendingClassroomId(classroomId);
+    setShowDeviceTest(true);
+  };
+
+  const handleDeviceTestComplete = (selectedDevices: { audioInputId: string; videoInputId: string }) => {
+    if (!user || !pendingClassroomId) return;
+
+    console.log('[Lobby] Device test complete. Selected devices:', selectedDevices);
+
+    setShowDeviceTest(false);
     setIsLoading(true);
-    setSelectedClassroom(classroomId);
+    setSelectedClassroom(pendingClassroomId);
 
     try {
       // Create full user object with session data
       const fullUser: AppUser = {
         ...user,
         sessionId: crypto.randomUUID(),
-        currentClassroom: classroomId,
+        currentClassroom: pendingClassroomId,
         joinedAt: new Date()
       };
 
       // Call parent handler to initiate classroom join
-      onJoinClassroom(classroomId, fullUser);
+      // Pass selected devices so transcription uses the correct microphone
+      onJoinClassroom(pendingClassroomId, fullUser, selectedDevices);
     } catch (error) {
       console.error('Failed to join classroom:', error);
       setIsLoading(false);
       setSelectedClassroom(null);
     }
+
+    setPendingClassroomId(null);
   };
 
   return (
@@ -325,6 +342,16 @@ export default function Lobby({ onJoinClassroom }: LobbyProps) {
             )}
           </>
         )}
+
+        {/* Device Test Modal */}
+        <DeviceTestModal
+          isOpen={showDeviceTest}
+          onClose={() => {
+            setShowDeviceTest(false);
+            setPendingClassroomId(null);
+          }}
+          onContinue={handleDeviceTestComplete}
+        />
       </div>
     </div>
   );

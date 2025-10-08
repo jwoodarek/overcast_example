@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: Quiz Generation API
+  version: 1.0.0
+  description: API for AI-powered quiz generation from instructor transcripts
+
+paths:
+  /api/quiz/generate:
+    post:
+      summary: Generate quiz from instructor transcript
+      description: Use LLM to create quiz questions based exclusively on instructor speech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - instructorId
+              properties:
+                sessionId:
+                  type: string
+                  description: Classroom session ID to generate quiz from
+                  example: "classroom-01"
+                instructorId:
+                  type: string
+                  description: Instructor requesting generation (for authorization)
+                  example: "instructor-dr-smith"
+                questionCount:
+                  type: integer
+                  minimum: 2
+                  maximum: 10
+                  default: 5
+                  description: Number of questions to generate
+                difficulty:
+                  type: string
+                  enum: [mixed, easy, medium, hard]
+                  default: "mixed"
+                  description: Difficulty distribution (mixed = 2 easy, 2 medium, 1 hard)
+                questionTypes:
+                  type: object
+                  description: Distribution of question types
+                  properties:
+                    multipleChoice:
+                      type: integer
+                      minimum: 0
+                      default: 3
+                    trueFalse:
+                      type: integer
+                      minimum: 0
+                      default: 2
+      responses:
+        '200':
+          description: Quiz generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz:
+                    $ref: '#/components/schemas/Quiz'
+                  generationTime:
+                    type: number
+                    description: Time taken to generate quiz in seconds
+                    example: 12.4
+        '202':
+          description: Quiz generation in progress (async)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                    description: Job ID to poll for completion
+                    example: "job-quiz-1696700400000"
+                  estimatedTime:
+                    type: integer
+                    description: Estimated completion time in seconds
+                    example: 30
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - not an instructor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found or no instructor transcripts available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: LLM API error or generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/quiz/{quizId}:
+    get:
+      summary: Retrieve a quiz by ID
+      description: Get quiz details including all questions
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Quiz ID
+          example: "quiz-classroom-01-1696700400000"
+      responses:
+        '200':
+          description: Quiz retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz:
+                    $ref: '#/components/schemas/Quiz'
+        '404':
+          description: Quiz not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update quiz questions
+      description: Edit quiz questions before publishing (instructor-only)
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 100
+                  description: Update quiz title
+                questions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/QuizQuestion'
+                  description: Updated questions array
+                status:
+                  type: string
+                  enum: [draft, published]
+                  description: Change quiz status
+      responses:
+        '200':
+          description: Quiz updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz:
+                    $ref: '#/components/schemas/Quiz'
+        '400':
+          description: Invalid update data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - not the quiz creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Quiz not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a quiz
+      description: Permanently delete a quiz (instructor-only)
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Quiz deleted successfully
+        '401':
+          description: Unauthorized - not the quiz creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Quiz not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Quiz:
+      type: object
+      required:
+        - id
+        - sessionId
+        - createdBy
+        - createdByName
+        - createdAt
+        - lastModified
+        - sourceTranscriptIds
+        - questions
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique quiz identifier
+          example: "quiz-classroom-01-1696700400000"
+        sessionId:
+          type: string
+          description: Classroom session this quiz was generated from
+          example: "classroom-01"
+        createdBy:
+          type: string
+          description: Instructor ID who created the quiz
+          example: "instructor-dr-smith"
+        createdByName:
+          type: string
+          description: Instructor display name
+          example: "Dr. Smith"
+        createdAt:
+          type: string
+          format: date-time
+          description: When quiz was generated
+        lastModified:
+          type: string
+          format: date-time
+          description: Last edit timestamp (equals createdAt if never edited)
+        sourceTranscriptIds:
+          type: array
+          items:
+            type: string
+          description: Transcript entry IDs used for generation (instructor transcripts only)
+          example: ["session-123-1696700000000-abc", "session-123-1696700060000-def"]
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizQuestion'
+          minItems: 2
+          maxItems: 10
+          description: Array of quiz questions
+        status:
+          type: string
+          enum: [draft, published]
+          description: |
+            - draft: Generated but not finalized by instructor
+            - published: Instructor approved, ready for students
+        title:
+          type: string
+          maxLength: 100
+          description: Quiz title (auto-generated or manually set)
+          example: "Derivatives Fundamentals"
+
+    QuizQuestion:
+      type: object
+      required:
+        - id
+        - type
+        - question
+        - correctAnswer
+        - explanation
+        - difficulty
+        - sourceTranscriptIds
+      properties:
+        id:
+          type: string
+          description: Unique question identifier within quiz
+          example: "quiz-classroom-01-1696700400000-q0"
+        type:
+          type: string
+          enum: [multiple_choice, true_false]
+          description: Question type
+        question:
+          type: string
+          maxLength: 300
+          description: The question text
+          example: "What is the derivative of x^2?"
+        options:
+          type: array
+          items:
+            type: string
+          minItems: 4
+          maxItems: 4
+          nullable: true
+          description: 4 answer options for multiple choice, null for true/false
+          example: ["x", "2x", "x^2", "2"]
+        correctAnswer:
+          oneOf:
+            - type: string
+              description: For multiple_choice - option letter (A-D) or index (0-3)
+              example: "B"
+            - type: boolean
+              description: For true_false - boolean value
+              example: true
+        explanation:
+          type: string
+          maxLength: 200
+          description: Brief explanation of the correct answer (educational)
+          example: "Using the power rule, bring down the exponent and reduce the power by 1"
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+          description: |
+            - easy: Basic recall or simple application
+            - medium: Requires understanding and synthesis
+            - hard: Complex problem-solving or analysis
+        sourceTranscriptIds:
+          type: array
+          items:
+            type: string
+          description: Which transcript segments this question was based on
+          example: ["session-123-1696700000000-abc"]
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "GENERATION_FAILED"
+        message:
+          type: string
+          example: "LLM API rate limit exceeded"
+        details:
+          type: object
+          additionalProperties: true
+
+

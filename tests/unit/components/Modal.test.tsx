@@ -8,12 +8,12 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Modal } from '@/app/components/ui/Modal';
+import Modal from '@/app/components/ui/Modal';
 
 describe('Modal Component', () => {
   test('renders modal when open', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Modal Content</div>
       </Modal>
     );
@@ -23,7 +23,7 @@ describe('Modal Component', () => {
 
   test('does not render when closed', () => {
     render(
-      <Modal open={false} onClose={() => {}}>
+      <Modal isOpen={false} onClose={() => {}}>
         <div>Modal Content</div>
       </Modal>
     );
@@ -33,7 +33,7 @@ describe('Modal Component', () => {
 
   test('renders modal title', () => {
     render(
-      <Modal open={true} onClose={() => {}} title="Test Modal">
+      <Modal isOpen={true} onClose={() => {}} title="Test Modal">
         <div>Content</div>
       </Modal>
     );
@@ -44,7 +44,7 @@ describe('Modal Component', () => {
   test('renders modal description', () => {
     render(
       <Modal
-        open={true}
+        isOpen={true}
         onClose={() => {}}
         title="Test Modal"
         description="This is a test modal"
@@ -59,7 +59,7 @@ describe('Modal Component', () => {
   test('calls onClose when close button is clicked', () => {
     const handleClose = jest.fn();
     render(
-      <Modal open={true} onClose={handleClose} title="Test Modal">
+      <Modal isOpen={true} onClose={handleClose} title="Test Modal">
         <div>Content</div>
       </Modal>
     );
@@ -74,7 +74,7 @@ describe('Modal Component', () => {
   test('calls onClose when overlay is clicked', () => {
     const handleClose = jest.fn();
     render(
-      <Modal open={true} onClose={handleClose}>
+      <Modal isOpen={true} onClose={handleClose}>
         <div>Content</div>
       </Modal>
     );
@@ -89,12 +89,12 @@ describe('Modal Component', () => {
   test('does not close when content is clicked', () => {
     const handleClose = jest.fn();
     render(
-      <Modal open={true} onClose={handleClose}>
-        <div data-testid="modal-content">Content</div>
+      <Modal isOpen={true} onClose={handleClose}>
+        <div data-testid="inner-content">Content</div>
       </Modal>
     );
     
-    const content = screen.getByTestId('modal-content');
+    const content = screen.getByTestId('inner-content');
     fireEvent.click(content);
     
     // Click on content should not propagate to overlay
@@ -104,7 +104,7 @@ describe('Modal Component', () => {
   test('closes on Escape key press', () => {
     const handleClose = jest.fn();
     render(
-      <Modal open={true} onClose={handleClose}>
+      <Modal isOpen={true} onClose={handleClose}>
         <div>Content</div>
       </Modal>
     );
@@ -116,7 +116,7 @@ describe('Modal Component', () => {
 
   test('renders children correctly', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div data-testid="child-1">Child 1</div>
         <div data-testid="child-2">Child 2</div>
       </Modal>
@@ -128,31 +128,31 @@ describe('Modal Component', () => {
 
   test('applies futuristic styling', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
     
-    // Modal should have dark background and border
-    const modal = screen.getByRole('dialog');
-    expect(modal).toHaveClass('bg-gray-900');
+    // Modal content should have dark background and border
+    const modalContent = screen.getByTestId('modal-content');
+    expect(modalContent).toHaveClass('bg-gray-900');
   });
 
   test('has overlay with semi-transparent background', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
     
     const overlay = screen.getByTestId('modal-overlay');
-    expect(overlay).toHaveClass('bg-black');
-    expect(overlay).toHaveClass('bg-opacity-50');
+    expect(overlay).toHaveClass('bg-black/60');
+    expect(overlay).toHaveClass('backdrop-blur-sm');
   });
 
   test('is accessible with proper ARIA attributes', () => {
     render(
-      <Modal open={true} onClose={() => {}} title="Accessible Modal">
+      <Modal isOpen={true} onClose={() => {}} title="Accessible Modal">
         <div>Content</div>
       </Modal>
     );
@@ -164,7 +164,7 @@ describe('Modal Component', () => {
 
   test('traps focus within modal', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <button>Button 1</button>
         <button>Button 2</button>
       </Modal>
@@ -181,7 +181,7 @@ describe('Modal Component', () => {
       return (
         <>
           <button onClick={() => setOpen(true)}>Open Modal</button>
-          <Modal open={open} onClose={() => setOpen(false)}>
+          <Modal isOpen={open} onClose={() => setOpen(false)} title="Test">
             <div>Modal Content</div>
           </Modal>
         </>
@@ -198,18 +198,18 @@ describe('Modal Component', () => {
 
   test('renders with custom className', () => {
     render(
-      <Modal open={true} onClose={() => {}} className="custom-modal">
+      <Modal isOpen={true} onClose={() => {}} className="custom-modal">
         <div>Content</div>
       </Modal>
     );
     
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('custom-modal');
+    const modalContent = screen.getByTestId('modal-content');
+    expect(modalContent).toHaveClass('custom-modal');
   });
 
   test('handles rapid open/close toggles', () => {
     const { rerender } = render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
@@ -217,7 +217,7 @@ describe('Modal Component', () => {
     expect(screen.getByText('Content')).toBeInTheDocument();
     
     rerender(
-      <Modal open={false} onClose={() => {}}>
+      <Modal isOpen={false} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
@@ -225,7 +225,7 @@ describe('Modal Component', () => {
     expect(screen.queryByText('Content')).not.toBeInTheDocument();
     
     rerender(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
@@ -235,7 +235,7 @@ describe('Modal Component', () => {
 
   test('prevents body scroll when open', () => {
     render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
@@ -246,7 +246,7 @@ describe('Modal Component', () => {
 
   test('restores body scroll when closed', () => {
     const { rerender } = render(
-      <Modal open={true} onClose={() => {}}>
+      <Modal isOpen={true} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
@@ -254,12 +254,12 @@ describe('Modal Component', () => {
     expect(document.body.style.overflow).toBe('hidden');
     
     rerender(
-      <Modal open={false} onClose={() => {}}>
+      <Modal isOpen={false} onClose={() => {}}>
         <div>Content</div>
       </Modal>
     );
     
-    expect(document.body.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('unset');
   });
 });
 

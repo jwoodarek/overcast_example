@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server';
 import { getDailyRoomById, DAILY_API_CONFIG } from '@/lib/daily-config';
 import { JoinRoomRequest, Participant } from '@/lib/types';
+import { addParticipantToRoom } from '../leave/route';
 
 interface RouteParams {
   params: Promise<{
@@ -206,6 +207,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       connectionState: 'connecting',
       joinedAt: new Date()
     };
+
+    // Track participant for leave endpoint concurrency control
+    addParticipantToRoom(roomId, sessionId);
 
     // Return success response with participant data and room URL
     return NextResponse.json({

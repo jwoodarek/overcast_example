@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Input } from '@/app/components/ui/Input';
+import Input from '@/app/components/ui/Input';
 
 describe('Input Component', () => {
   test('renders input field', () => {
@@ -100,9 +100,9 @@ describe('Input Component', () => {
     const input = screen.getByRole('textbox');
     
     // Check for base Tailwind classes
-    expect(input).toHaveClass('flex');
     expect(input).toHaveClass('w-full');
     expect(input).toHaveClass('rounded-md');
+    expect(input).toHaveClass('bg-gray-800');
   });
 
   test('handles focus events', () => {

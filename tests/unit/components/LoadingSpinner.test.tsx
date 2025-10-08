@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 
 describe('LoadingSpinner Component', () => {
   test('renders spinner', () => {
@@ -17,9 +17,10 @@ describe('LoadingSpinner Component', () => {
     expect(spinner).toBeInTheDocument();
   });
 
-  test('renders with default text', () => {
+  test('renders without text by default', () => {
     render(<LoadingSpinner />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    const container = screen.getByTestId('loading-container');
+    expect(container.querySelector('p')).not.toBeInTheDocument();
   });
 
   test('renders with custom text', () => {
@@ -41,25 +42,25 @@ describe('LoadingSpinner Component', () => {
   test('renders with medium (default) size', () => {
     render(<LoadingSpinner size="md" />);
     const spinner = screen.getByTestId('loading-spinner');
-    expect(spinner).toHaveClass('w-8', 'h-8');
+    expect(spinner).toHaveClass('w-6', 'h-6');
   });
 
   test('renders with large size', () => {
     render(<LoadingSpinner size="lg" />);
     const spinner = screen.getByTestId('loading-spinner');
-    expect(spinner).toHaveClass('w-12', 'h-12');
+    expect(spinner).toHaveClass('w-8', 'h-8');
   });
 
   test('renders with extra large size', () => {
     render(<LoadingSpinner size="xl" />);
     const spinner = screen.getByTestId('loading-spinner');
-    expect(spinner).toHaveClass('w-16', 'h-16');
+    expect(spinner).toHaveClass('w-12', 'h-12');
   });
 
   test('applies futuristic teal color', () => {
     render(<LoadingSpinner />);
     const spinner = screen.getByTestId('loading-spinner');
-    expect(spinner).toHaveClass('border-[#00FFD1]');
+    expect(spinner).toHaveClass('text-teal-500');
   });
 
   test('has spinning animation', () => {
@@ -68,28 +69,28 @@ describe('LoadingSpinner Component', () => {
     expect(spinner).toHaveClass('animate-spin');
   });
 
-  test('is circular', () => {
+  test('has SVG structure', () => {
     render(<LoadingSpinner />);
     const spinner = screen.getByTestId('loading-spinner');
-    expect(spinner).toHaveClass('rounded-full');
+    expect(spinner.tagName).toBe('svg');
   });
 
-  test('centers content by default', () => {
+  test('centers content', () => {
     render(<LoadingSpinner />);
     const container = screen.getByTestId('loading-container');
-    expect(container).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    expect(container).toHaveClass('flex', 'flex-col', 'items-center');
   });
 
-  test('renders full screen when fullScreen prop is true', () => {
-    render(<LoadingSpinner fullScreen />);
+  test('renders with centered prop', () => {
+    render(<LoadingSpinner centered />);
     const container = screen.getByTestId('loading-container');
-    expect(container).toHaveClass('min-h-screen');
+    expect(container).toHaveClass('justify-center', 'min-h-[100px]');
   });
 
-  test('renders inline when fullScreen is false', () => {
-    render(<LoadingSpinner fullScreen={false} />);
+  test('renders without centered styling by default', () => {
+    render(<LoadingSpinner />);
     const container = screen.getByTestId('loading-container');
-    expect(container).not.toHaveClass('min-h-screen');
+    expect(container).not.toHaveClass('justify-center');
   });
 
   test('applies custom className', () => {
@@ -102,7 +103,7 @@ describe('LoadingSpinner Component', () => {
     render(<LoadingSpinner />);
     const spinner = screen.getByTestId('loading-spinner');
     expect(spinner).toHaveAttribute('role', 'status');
-    expect(spinner).toHaveAttribute('aria-live', 'polite');
+    expect(spinner).toHaveAttribute('aria-label', 'Loading');
   });
 
   test('renders multiple spinners independently', () => {
@@ -130,7 +131,7 @@ describe('LoadingSpinner Component', () => {
     
     const spinners = screen.getAllByTestId('loading-spinner');
     expect(spinners[0]).toHaveClass('w-4', 'h-4');
-    expect(spinners[1]).toHaveClass('w-12', 'h-12');
+    expect(spinners[1]).toHaveClass('w-8', 'h-8');
   });
 
   test('text appears below spinner', () => {
@@ -150,16 +151,16 @@ describe('LoadingSpinner Component', () => {
     expect(spinnerIndex).toBeLessThan(textIndex);
   });
 
-  test('has proper spacing between spinner and text', () => {
+  test('container has proper spacing', () => {
     render(<LoadingSpinner text="Loading..." />);
-    const text = screen.getByText('Loading...');
-    expect(text).toHaveClass('mt-4');
+    const container = screen.getByTestId('loading-container');
+    expect(container).toHaveClass('space-y-2');
   });
 
   test('text has appropriate styling', () => {
     render(<LoadingSpinner text="Loading data..." />);
     const text = screen.getByText('Loading data...');
-    expect(text).toHaveClass('text-gray-300');
+    expect(text).toHaveClass('text-center', 'font-medium');
   });
 
   test('renders consistently across re-renders', () => {

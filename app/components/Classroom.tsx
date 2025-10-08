@@ -11,8 +11,10 @@ import {
   hasInstructorPermissions,
   safelyLeaveCall 
 } from '@/lib/daily-utils';
+import { transcriptionService } from '@/lib/services/transcription-service';
 import InstructorControls from './InstructorControls';
 import VideoFeed from './VideoFeed';
+import TranscriptMonitor from './TranscriptMonitor';
 
 // Module-level singleton to prevent duplicate Daily instances
 // WHY: React strict mode causes effects to run twice, which creates duplicate Daily iframes
@@ -24,12 +26,16 @@ interface ClassroomProps {
   classroomId: string;
   user: AppUser;
   onLeave: () => void;
+  audioDeviceId?: string;
+  videoDeviceId?: string;
 }
 
 interface ClassroomContentProps {
   classroomId: string;
   user: AppUser;
   onLeave: () => void;
+  audioDeviceId?: string;
+  videoDeviceId?: string;
 }
 
 /**
@@ -137,10 +143,72 @@ function ErrorDisplay({ error, onRetry }: { error: string; onRetry: () => void }
 }
 
 /**
+ * FERPA Compliance Notification
+ * 
+ * WHY this notification:
+ * - FERPA requires informed consent for recording educational content
+ * - Students must know their speech is being captured
+ * - Provides transparency about data usage
+ * - Allows opt-out (user can deny microphone permissions)
+ * 
+ * WHY opt-in approach:
+ * - Respects user privacy and educational regulations
+ * - Clear about what data is captured and why
+ * - Explains benefits (help detection, quiz generation)
+ */
+function TranscriptionConsentNotification({ 
+  onAccept, 
+  onDecline,
+  show 
+}: { 
+  onAccept: () => void;
+  onDecline: () => void;
+  show: boolean;
+}) {
+  if (!show) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 max-w-md bg-gray-800 border border-teal-500/30 rounded-lg p-4 shadow-xl z-50">
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0 text-2xl">🎤</div>
+        <div className="flex-1">
+          <h3 className="text-white font-semibold mb-2">
+            Enable Transcription?
+          </h3>
+          <p className="text-gray-300 text-sm mb-3">
+            This classroom uses speech transcription to enable intelligent features like 
+            help detection and quiz generation. Your speech will be converted to text and 
+            used only during this session.
+          </p>
+          <p className="text-gray-400 text-xs mb-3">
+            By accepting, you consent to having your spoken words transcribed. 
+            Transcripts are temporary and session-only. You can deny this by clicking "No Thanks".
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={onAccept}
+              className="flex-1 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded text-sm font-medium transition-colors"
+            >
+              Enable Transcription
+            </button>
+            <button
+              onClick={onDecline}
+              className="flex-1 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium transition-colors"
+            >
+              No Thanks
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Main classroom content component (inside DailyProvider)
  * Handles Daily.co integration and participant management
  */
-function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps) {
+function ClassroomContent({ classroomId, user, onLeave, audioDeviceId, videoDeviceId }: ClassroomContentProps) {
   const daily = useDaily();
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
@@ -148,6 +216,13 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(true);
+
+  // Transcription state
+  // WHY separate state: Transcription is independent of video connection
+  const [transcriptionActive, setTranscriptionActive] = useState(false);
+  const [transcriptionSupported, setTranscriptionSupported] = useState(true);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
+  const [showTranscriptionConsent, setShowTranscriptionConsent] = useState(false);
 
   // Get classroom configuration
   const classroom = getDailyRoomById(classroomId);
@@ -219,6 +294,122 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
     }
   }, [daily, classroom, user.name, user.role, user.sessionId]);
 
+  /**
+   * Start transcript capture for this user
+   * 
+   * WHY role assignment:
+   * - Role from user object determines if speech is used for quiz generation
+   * - Instructor transcripts → quiz questions
+   * - Student transcripts → help detection only
+   * 
+   * WHY breakoutRoomName null for main classroom:
+   * - Main classroom sessions don't have breakout room name
+   * - Breakout rooms will pass their name when this is extended
+   */
+  const startTranscription = useCallback(async () => {
+    if (!transcriptionSupported) {
+      console.log('[Transcription] Not supported in this browser');
+      return;
+    }
+
+    if (transcriptionActive) {
+      console.log('[Transcription] Already active');
+      return;
+    }
+
+    try {
+      console.log('[Transcription] Starting capture for user:', user.name, user.role);
+      if (audioDeviceId) {
+        console.log('[Transcription] Using selected microphone:', audioDeviceId);
+      }
+      
+      await transcriptionService.startCapture(
+        `classroom-${classroomId}`, // Session ID with classroom prefix
+        user.sessionId, // Speaker ID is user's session ID
+        user.name,
+        user.role,
+        null, // Main classroom (no breakout room name)
+        audioDeviceId // Selected microphone device ID
+      );
+
+      setTranscriptionActive(true);
+      setTranscriptionError(null);
+      console.log('[Transcription] Successfully started');
+    } catch (err) {
+      console.error('[Transcription] Failed to start:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start transcription';
+      setTranscriptionError(errorMessage);
+      
+      // Show user-friendly message
+      if (errorMessage.includes('not supported')) {
+        setTranscriptionSupported(false);
+      } else if (errorMessage.includes('permission') || errorMessage.includes('not-allowed')) {
+        setTranscriptionError('Microphone permission denied. Transcription disabled.');
+      }
+    }
+  }, [classroomId, user.sessionId, user.name, user.role, transcriptionSupported, transcriptionActive, audioDeviceId]);
+
+  /**
+   * Stop transcript capture
+   * 
+   * WHY cleanup important:
+   * - Prevents memory leaks
+   * - Stops microphone usage
+   * - Cleans up browser speech recognition resources
+   */
+  const stopTranscription = useCallback(async () => {
+    if (!transcriptionActive) {
+      return;
+    }
+
+    try {
+      console.log('[Transcription] Stopping capture for session:', classroomId);
+      await transcriptionService.stopCapture(`classroom-${classroomId}`);
+      setTranscriptionActive(false);
+      console.log('[Transcription] Successfully stopped');
+    } catch (err) {
+      console.error('[Transcription] Failed to stop:', err);
+    }
+  }, [classroomId, transcriptionActive]);
+
+  /**
+   * Handle user's transcription consent response
+   * 
+   * WHY FERPA compliance:
+   * - Educational settings require informed consent for recording
+   * - User must explicitly agree to transcription
+   * - Can opt-out by declining or denying microphone permissions
+   */
+  const handleTranscriptionConsent = useCallback(async (accepted: boolean) => {
+    setShowTranscriptionConsent(false);
+
+    if (accepted) {
+      console.log('[Transcription] User accepted consent');
+      await startTranscription();
+    } else {
+      console.log('[Transcription] User declined consent');
+      setTranscriptionError('Transcription disabled (user declined)');
+    }
+  }, [startTranscription]);
+
+  /**
+   * Check transcription support on mount
+   * 
+   * WHY check support:
+   * - Web Speech API not available in all browsers
+   * - Firefox doesn't support it yet
+   * - Safari and Chrome have good support
+   */
+  useEffect(() => {
+    const supported = transcriptionService.isSupported();
+    setTranscriptionSupported(supported);
+    
+    if (!supported) {
+      console.warn('[Transcription] Not supported in this browser. Use Chrome, Edge, or Safari for transcription features.');
+      setTranscriptionError('Transcription not supported in this browser. Please use Chrome, Edge, or Safari.');
+    }
+  }, []);
+
   // Handle Daily events
   useEffect(() => {
     if (!daily) return;
@@ -228,6 +419,15 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
       setConnectionState('connected');
       setError(null);
       setIsJoining(false);
+
+      // Show transcription consent notification after successfully joining
+      // WHY after join: User needs to be in classroom first to understand context
+      // WHY delay: Give user a moment to see they've connected successfully
+      if (transcriptionSupported) {
+        setTimeout(() => {
+          setShowTranscriptionConsent(true);
+        }, 2000); // 2 second delay so user isn't overwhelmed
+      }
     };
 
     const handleLeftMeeting = () => {
@@ -279,6 +479,11 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
   const handleLeave = useCallback(async () => {
     console.log('[Daily] Leaving classroom, destroying singleton...');
     
+    // Stop transcription before leaving
+    // WHY before leaving: Ensures cleanup happens before component unmounts
+    // WHY important: Prevents memory leaks and stops microphone usage
+    await stopTranscription();
+    
     // Use safe leave utility to ensure proper cleanup
     await safelyLeaveCall(daily);
     
@@ -295,7 +500,7 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
     }
     
     onLeave();
-  }, [daily, onLeave]);
+  }, [daily, onLeave, stopTranscription]);
 
   // Early return if classroom not found (after all hooks)
   if (!classroom) {
@@ -349,24 +554,36 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
 
         {/* Connected State - Video Grid */}
         {connectionState === 'connected' && !error && (
-          <div className="h-full flex flex-col">
+          <div className="h-full flex">
             {/* Main Video Area */}
-            <div className="flex-1 p-4 overflow-auto bg-gray-950">
-              <VideoFeed 
-                showLocalVideo={true}
-                showRemoteParticipants={true}
-                maxParticipants={12}
-                className="h-full"
-              />
+            <div className="flex-1 flex flex-col">
+              <div className="flex-1 p-4 overflow-auto bg-gray-950">
+                <VideoFeed 
+                  showLocalVideo={true}
+                  showRemoteParticipants={true}
+                  maxParticipants={12}
+                  className="h-full"
+                />
+              </div>
+
+              {/* Instructor Controls - Only visible for instructors (T040: Role-based UI) */}
+              {user.role === 'instructor' && localParticipant && hasInstructorPermissions(localParticipant) && (
+                <div className="border-t border-gray-700 p-4 bg-gray-900">
+                  <InstructorControls
+                    instructor={user}
+                    classroomId={classroomId}
+                    enabled={true}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Instructor Controls - Only visible for instructors (T040: Role-based UI) */}
-            {user.role === 'instructor' && localParticipant && hasInstructorPermissions(localParticipant) && (
-              <div className="border-t border-gray-700 p-4 bg-gray-900">
-                <InstructorControls
-                  instructor={user}
-                  classroomId={classroomId}
-                  enabled={true}
+            {/* Transcript Monitor - Side Panel */}
+            {transcriptionActive && (
+              <div className="w-96 border-l border-gray-700 bg-gray-900 flex flex-col">
+                <TranscriptMonitor 
+                  sessionId={`classroom-${classroomId}`}
+                  refreshInterval={2000}
                 />
               </div>
             )}
@@ -398,6 +615,50 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
           </div>
         )}
       </div>
+
+      {/* Transcription Consent Notification */}
+      <TranscriptionConsentNotification
+        show={showTranscriptionConsent}
+        onAccept={() => handleTranscriptionConsent(true)}
+        onDecline={() => handleTranscriptionConsent(false)}
+      />
+
+      {/* Transcription Status Indicator */}
+      {/* WHY show status: User should know if transcription is active */}
+      {transcriptionActive && (
+        <div className="fixed top-20 right-4 bg-red-600 text-white px-3 py-2 rounded-lg shadow-lg z-40">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium">Transcription Active</span>
+          </div>
+          <button
+            onClick={async () => {
+              console.log('[DEBUG] Manual transcription test');
+              console.log('[DEBUG] transcriptionActive:', transcriptionActive);
+              console.log('[DEBUG] transcriptionSupported:', transcriptionSupported);
+              console.log('[DEBUG] classroomId:', classroomId);
+              console.log('[DEBUG] user:', user);
+              
+              // Try to restart transcription
+              await stopTranscription();
+              setTimeout(async () => {
+                await startTranscription();
+              }, 500);
+            }}
+            className="mt-1 text-xs underline hover:text-white/80"
+          >
+            Restart Transcription
+          </button>
+        </div>
+      )}
+
+      {/* Transcription Error Indicator */}
+      {/* WHY show errors: User needs to know if transcription failed */}
+      {transcriptionError && !transcriptionActive && (
+        <div className="fixed top-20 right-4 bg-yellow-600 text-white px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-40">
+          <span className="text-sm">⚠️ {transcriptionError}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -406,7 +667,7 @@ function ClassroomContent({ classroomId, user, onLeave }: ClassroomContentProps)
  * Main Classroom component with DailyProvider wrapper
  * Provides Daily.co context to child components
  */
-export default function Classroom({ classroomId, user, onLeave }: ClassroomProps) {
+export default function Classroom({ classroomId, user, onLeave, audioDeviceId, videoDeviceId }: ClassroomProps) {
   const [dailyCall, setDailyCall] = useState<DailyCall | null>(null);
   const callRef = React.useRef<DailyCall | null>(null);
 
@@ -496,7 +757,9 @@ export default function Classroom({ classroomId, user, onLeave }: ClassroomProps
       <ClassroomContent 
         classroomId={classroomId} 
         user={user} 
-        onLeave={onLeave} 
+        onLeave={onLeave}
+        audioDeviceId={audioDeviceId}
+        videoDeviceId={videoDeviceId}
       />
     </DailyProvider>
   );

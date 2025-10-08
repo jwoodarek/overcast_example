@@ -41,6 +41,12 @@ function ClassroomPageContent({ params }: { params: Promise<{ id: string }> }) {
   const userName = searchParams.get('name') || 'Anonymous';
   const userRole = (searchParams.get('role') || 'student') as 'student' | 'instructor';
   const sessionId = searchParams.get('sessionId') || crypto.randomUUID();
+  
+  // Extract selected device IDs from URL parameters
+  // WHY: Need to use the devices the user tested in the device selection modal
+  // This ensures transcription uses the correct microphone, not a random default
+  const audioDeviceId = searchParams.get('audioDevice') || undefined;
+  const videoDeviceId = searchParams.get('videoDevice') || undefined;
 
   // Construct user object
   const user: AppUser = {
@@ -70,6 +76,8 @@ function ClassroomPageContent({ params }: { params: Promise<{ id: string }> }) {
       classroomId={id}
       user={user}
       onLeave={handleLeaveClassroom}
+      audioDeviceId={audioDeviceId}
+      videoDeviceId={videoDeviceId}
     />
   );
 }

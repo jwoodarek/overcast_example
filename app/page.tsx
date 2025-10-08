@@ -25,16 +25,24 @@ export default function Home() {
    * 
    * WHY: We navigate to the classroom page when a user selects a classroom.
    * The user data is passed via URL parameters to the classroom page.
-   * In a production app, this would use session storage or server-side
-   * authentication, but for local development we use URL state.
+   * Device IDs are passed so transcription uses the correct microphone.
    * 
    * @param classroomId - The ID of the classroom to join
    * @param user - The user data including name, role, sessionId
+   * @param selectedDevices - Selected audio/video device IDs from device test
    */
-  const handleJoinClassroom = (classroomId: string, user: AppUser) => {
+  const handleJoinClassroom = (classroomId: string, user: AppUser, selectedDevices?: { audioInputId: string; videoInputId: string }) => {
     // Navigate to the classroom page
     // The classroom page will handle Daily.co connection
-    router.push(`/classroom/${classroomId}?name=${encodeURIComponent(user.name)}&role=${user.role}&sessionId=${user.sessionId}`);
+    let url = `/classroom/${classroomId}?name=${encodeURIComponent(user.name)}&role=${user.role}&sessionId=${user.sessionId}`;
+    
+    // Include device IDs so transcription uses the correct microphone
+    if (selectedDevices) {
+      url += `&audioDevice=${encodeURIComponent(selectedDevices.audioInputId)}`;
+      url += `&videoDevice=${encodeURIComponent(selectedDevices.videoInputId)}`;
+    }
+    
+    router.push(url);
   };
 
   return (

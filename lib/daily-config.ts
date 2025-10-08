@@ -1,20 +1,7 @@
 // Daily.co room configuration for Overcast Video Classroom Application
 // Manages the 6 pre-defined Daily room URLs for local development
 
-/**
- * Extract room name from Daily.co URL
- * WHY: Use the actual room name from the URL (e.g., "01-clippy") instead of generic names
- * This makes it easier to identify rooms and matches the Daily.co dashboard
- */
-function extractRoomName(url: string): string {
-  try {
-    const parts = url.split('/');
-    const roomName = parts[parts.length - 1];
-    return roomName || 'Unknown Room';
-  } catch {
-    return 'Unknown Room';
-  }
-}
+import { CLASSROOM_NAMES } from './constants';
 
 // Daily room URL configuration
 // These URLs should match the environment variables in .env.local
@@ -27,40 +14,42 @@ const room4Url = process.env.NEXT_PUBLIC_DAILY_ROOM_4 || 'https://overcast.daily
 const room5Url = process.env.NEXT_PUBLIC_DAILY_ROOM_5 || 'https://overcast.daily.co/cohort-5';
 const room6Url = process.env.NEXT_PUBLIC_DAILY_ROOM_6 || 'https://overcast.daily.co/cohort-6';
 
+// WHY: Use consistent classroom names from constants instead of extracting from URLs
+// This ensures the API returns the expected "Cohort Alpha", "Cohort Beta", etc. names
 export const DAILY_ROOMS = [
   {
     id: '1',
-    name: extractRoomName(room1Url),
+    name: CLASSROOM_NAMES[0],
     url: room1Url,
     capacity: 50
   },
   {
     id: '2', 
-    name: extractRoomName(room2Url),
+    name: CLASSROOM_NAMES[1],
     url: room2Url,
     capacity: 50
   },
   {
     id: '3',
-    name: extractRoomName(room3Url), 
+    name: CLASSROOM_NAMES[2], 
     url: room3Url,
     capacity: 50
   },
   {
     id: '4',
-    name: extractRoomName(room4Url),
+    name: CLASSROOM_NAMES[3],
     url: room4Url, 
     capacity: 50
   },
   {
     id: '5',
-    name: extractRoomName(room5Url),
+    name: CLASSROOM_NAMES[4],
     url: room5Url,
     capacity: 50
   },
   {
     id: '6',
-    name: extractRoomName(room6Url),
+    name: CLASSROOM_NAMES[5],
     url: room6Url,
     capacity: 50
   }

@@ -74,7 +74,7 @@ export default function LoadingSpinner({
   );
 
   return (
-    <div className={containerStyles}>
+    <div className={containerStyles} data-testid="loading-container">
       {/* Spinner */}
       <svg 
         className={spinnerStyles}
@@ -83,6 +83,7 @@ export default function LoadingSpinner({
         viewBox="0 0 24 24"
         role="status"
         aria-label={text || 'Loading'}
+        data-testid="loading-spinner"
       >
         <circle 
           className="opacity-25" 

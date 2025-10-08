@@ -1,0 +1,246 @@
+openapi: 3.0.0
+info:
+  title: Help Alerts API
+  version: 1.0.0
+  description: API for managing help alerts from breakout rooms to instructors
+
+paths:
+  /api/alerts/{sessionId}:
+    get:
+      summary: Get help alerts for a classroom session
+      description: Retrieve all alerts for a classroom, with optional filtering by status, urgency, or breakout room
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Classroom session ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, acknowledged, resolved, dismissed]
+          description: Filter by alert status
+        - name: urgency
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high]
+          description: Filter by urgency level
+        - name: breakoutRoom
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by specific breakout room name
+      responses:
+        '200':
+          description: Alerts retrieved successfully (sorted by urgency desc, then time desc)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HelpAlert'
+                  counts:
+                    type: object
+                    description: Count of alerts by status
+                    properties:
+                      pending:
+                        type: integer
+                      acknowledged:
+                        type: integer
+                      resolved:
+                        type: integer
+                      dismissed:
+                        type: integer
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - not an instructor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/alerts:
+    post:
+      summary: Update alert status
+      description: Acknowledge, resolve, or dismiss an alert (instructor-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - alertId
+                - status
+                - instructorId
+              properties:
+                alertId:
+                  type: string
+                  description: Alert ID to update
+                  example: "alert-1696700180000-xyz"
+                status:
+                  type: string
+                  enum: [acknowledged, resolved, dismissed]
+                  description: New status (cannot transition back to pending)
+                instructorId:
+                  type: string
+                  description: ID of instructor performing action
+                  example: "instructor-dr-smith"
+                notes:
+                  type: string
+                  description: Optional notes from instructor
+                  maxLength: 500
+      responses:
+        '200':
+          description: Alert updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alert:
+                    $ref: '#/components/schemas/HelpAlert'
+                  message:
+                    type: string
+                    example: "Alert acknowledged successfully"
+        '400':
+          description: Invalid request or status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - not an instructor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HelpAlert:
+      type: object
+      required:
+        - id
+        - classroomSessionId
+        - breakoutRoomSessionId
+        - detectedAt
+        - topic
+        - urgency
+        - triggerKeywords
+        - contextSnippet
+        - status
+        - sourceTranscriptIds
+      properties:
+        id:
+          type: string
+          description: Unique alert identifier
+          example: "alert-1696700180000-xyz"
+        classroomSessionId:
+          type: string
+          description: Main classroom session ID
+          example: "classroom-01"
+        breakoutRoomSessionId:
+          type: string
+          description: Breakout room or classroom session ID where help was detected
+          example: "breakout-room-2"
+        breakoutRoomName:
+          type: string
+          nullable: true
+          description: Human-readable breakout room name, null if main classroom
+          example: "Group 2"
+        detectedAt:
+          type: string
+          format: date-time
+          description: When help was detected
+        topic:
+          type: string
+          maxLength: 100
+          description: What topic/concept students are struggling with
+          example: "derivatives"
+        urgency:
+          type: string
+          enum: [low, medium, high]
+          description: |
+            - low: Mild confusion, can wait
+            - medium: Repeated confusion, should address soon
+            - high: Clear distress, immediate attention needed
+        triggerKeywords:
+          type: array
+          items:
+            type: string
+          description: Keywords that triggered this alert
+          example: ["don't understand", "confused"]
+        contextSnippet:
+          type: string
+          maxLength: 300
+          description: 2-3 sentences of transcript around detection point
+          example: "Alice: I don't understand how to find the derivative of this function. Bob: Yeah, I'm confused too."
+        status:
+          type: string
+          enum: [pending, acknowledged, resolved, dismissed]
+          description: |
+            - pending: New alert, not yet seen by instructor
+            - acknowledged: Instructor has seen it
+            - resolved: Instructor handled it
+            - dismissed: False positive or no longer relevant
+        acknowledgedBy:
+          type: string
+          nullable: true
+          description: Instructor ID who acknowledged/resolved this alert
+          example: "instructor-dr-smith"
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the alert was acknowledged/resolved
+        sourceTranscriptIds:
+          type: array
+          items:
+            type: string
+          description: Transcript entry IDs that contributed to this alert
+          example: ["session-789-1696700120000-def", "session-789-1696700125000-ghi"]
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          example: "Only instructors can update alert status"
+        details:
+          type: object
+          additionalProperties: true
+
+

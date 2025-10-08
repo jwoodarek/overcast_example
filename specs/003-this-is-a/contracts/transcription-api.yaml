@@ -1,0 +1,256 @@
+openapi: 3.0.0
+info:
+  title: Transcription API
+  version: 1.0.0
+  description: API for capturing and retrieving real-time transcripts from classroom sessions
+
+paths:
+  /api/transcripts/{sessionId}:
+    get:
+      summary: Get transcript entries for a session
+      description: Retrieve transcripts for a classroom or breakout room session with optional filtering
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Classroom or breakout room session ID
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Only return entries after this timestamp (ISO 8601)
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [instructor, student]
+          description: Filter by speaker role
+        - name: minConfidence
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+            default: 0.7
+          description: Minimum transcription confidence score
+      responses:
+        '200':
+          description: Transcript entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TranscriptEntry'
+                  count:
+                    type: integer
+                    description: Number of entries returned
+                  hasMore:
+                    type: boolean
+                    description: Whether more entries exist beyond the returned set
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/transcripts/analyze:
+    post:
+      summary: Trigger help detection analysis
+      description: Analyze recent transcripts for help patterns and generate alerts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+              properties:
+                sessionId:
+                  type: string
+                  description: Session ID to analyze
+                sinceLast:
+                  type: boolean
+                  default: true
+                  description: Only analyze new transcripts since last analysis
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  analyzed:
+                    type: integer
+                    description: Number of transcript entries analyzed
+                  alertsGenerated:
+                    type: integer
+                    description: Number of new help alerts created
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HelpAlert'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TranscriptEntry:
+      type: object
+      required:
+        - id
+        - sessionId
+        - speakerId
+        - speakerRole
+        - speakerName
+        - text
+        - timestamp
+        - confidence
+      properties:
+        id:
+          type: string
+          description: Unique identifier for this transcript entry
+          example: "session-123-1696700000000-abc"
+        sessionId:
+          type: string
+          description: Classroom or breakout room session ID
+          example: "classroom-01"
+        speakerId:
+          type: string
+          description: Daily.co participant ID
+          example: "participant-456"
+        speakerRole:
+          type: string
+          enum: [instructor, student]
+          description: Role of the speaker
+        speakerName:
+          type: string
+          description: Display name of speaker
+          example: "Dr. Smith"
+        text:
+          type: string
+          description: Transcribed text content
+          maxLength: 1000
+          example: "Today we will discuss derivatives and their applications."
+        timestamp:
+          type: string
+          format: date-time
+          description: When this was spoken (ISO 8601)
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          description: Transcription confidence score
+          example: 0.98
+        breakoutRoomName:
+          type: string
+          nullable: true
+          description: Breakout room name if in breakout session, null if in main classroom
+          example: "Group 2"
+
+    HelpAlert:
+      type: object
+      required:
+        - id
+        - classroomSessionId
+        - breakoutRoomSessionId
+        - detectedAt
+        - topic
+        - urgency
+        - triggerKeywords
+        - contextSnippet
+        - status
+      properties:
+        id:
+          type: string
+          example: "alert-1696700180000-xyz"
+        classroomSessionId:
+          type: string
+          example: "classroom-01"
+        breakoutRoomSessionId:
+          type: string
+          example: "breakout-room-2"
+        breakoutRoomName:
+          type: string
+          nullable: true
+          example: "Group 2"
+        detectedAt:
+          type: string
+          format: date-time
+        topic:
+          type: string
+          maxLength: 100
+          example: "derivatives"
+        urgency:
+          type: string
+          enum: [low, medium, high]
+        triggerKeywords:
+          type: array
+          items:
+            type: string
+          example: ["don't understand", "confused"]
+        contextSnippet:
+          type: string
+          maxLength: 300
+          example: "Alice: I don't understand how to find the derivative of this function."
+        status:
+          type: string
+          enum: [pending, acknowledged, resolved, dismissed]
+        acknowledgedBy:
+          type: string
+          nullable: true
+          example: "instructor-dr-smith"
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sourceTranscriptIds:
+          type: array
+          items:
+            type: string
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "BAD_REQUEST"
+        message:
+          type: string
+          example: "Invalid session ID format"
+        details:
+          type: object
+          additionalProperties: true
+
+

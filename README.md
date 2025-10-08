@@ -4,11 +4,20 @@ A futuristic video classroom application built with Next.js and Daily.co, featur
 
 ## Features
 
+### Core Video Classroom
 - **Main Lobby**: Browse 6 available classrooms with minimal, futuristic design
 - **Student Mode**: Join classrooms, view video feeds, switch between rooms
 - **Instructor Mode**: All student features plus participant muting and breakout room management
 - **Real-time Video**: Powered by Daily.co with support for up to 50 participants per classroom
+- **Breakout Rooms**: Create and manage smaller group discussions
 - **Futuristic Design**: Black/teal aesthetic inspired by the Overclock Accelerator brand
+
+### Intelligent Features 🤖
+- **Live Transcript Capture**: Real-time transcription of all classroom audio using Web Speech API
+- **Help Detection**: AI-powered analysis identifies when students need assistance based on keywords and patterns
+- **Smart Alerts**: Instructors receive real-time notifications when students express confusion or struggle
+- **AI Quiz Generation**: Generate custom quizzes from instructor speech using GPT-3.5, with multiple choice and true/false questions
+- **Role-Based Analysis**: Distinguishes instructor speech from student speech for accurate quiz generation
 
 ## Quick Start
 
@@ -42,7 +51,12 @@ npm run dev
    - Create 6 room URLs for the classrooms
    - Copy your API key
 
-2. **Configure Environment**:
+2. **Get OpenAI API Key** (for intelligent features):
+   - Sign up at [OpenAI Platform](https://platform.openai.com)
+   - Create an API key from the API Keys section
+   - Copy your key for quiz generation
+
+3. **Configure Environment**:
    ```bash
    # Copy the example file
    cp env.example .env.local
@@ -51,9 +65,12 @@ npm run dev
    DAILY_API_KEY=your_actual_api_key
    DAILY_ROOM_1=https://your-domain.daily.co/cohort-1
    # ... (configure all 6 rooms)
+   
+   # Add OpenAI key for intelligent features
+   OPENAI_API_KEY=your_openai_api_key
    ```
 
-3. **Start Development**:
+4. **Start Development**:
    ```bash
    npm run dev
    ```
@@ -133,23 +150,47 @@ npm run type-check
 1. Open application → see main lobby with 6 classrooms
 2. Click classroom → enter name → join as student
 3. View live video feed with other participants
-4. Return to lobby or switch to different classroom
+4. Speak and participate (transcription captures audio automatically)
+5. Return to lobby or switch to different classroom
 
 ### Instructor Journey
 1. Toggle to "Instructors" mode in lobby
 2. Join classroom as instructor → get additional controls
 3. Mute/unmute individual participants or all participants
 4. Create breakout rooms for smaller group discussions
-5. Manage classroom with equal privileges alongside other instructors
+5. **Monitor help alerts**: View real-time alerts when students need assistance
+6. **Generate quizzes**: Create custom assessments from your teaching content
+7. Manage classroom with equal privileges alongside other instructors
+
+### Intelligent Features Workflow
+1. **Automatic Transcription**: All speech is transcribed in real-time
+2. **Help Detection**: System analyzes student speech for confusion keywords
+3. **Alert Generation**: Instructors receive alerts within 5 seconds of detection
+4. **Alert Management**: Acknowledge, resolve, or dismiss alerts from dashboard
+5. **Quiz Creation**: Click "Generate Quiz" to create questions from instructor speech
+6. **Quiz Editing**: Review and edit generated questions before publishing
 
 ## API Endpoints
 
+### Video Classroom Management
 - `GET /api/rooms` - List all 6 classrooms with status
 - `POST /api/rooms/{id}/join` - Join a classroom
 - `POST /api/rooms/{id}/leave` - Leave a classroom
 - `POST /api/participants/{sessionId}/mute` - Mute/unmute participant
 - `POST /api/participants/mute-all` - Mute all participants
 - `POST /api/breakout-rooms` - Create breakout room
+
+### Intelligent Features
+- `GET /api/transcripts/{sessionId}` - Retrieve transcript entries for a session
+  - Query params: `?role=instructor|student&since=timestamp&minConfidence=0.7`
+- `POST /api/transcripts/analyze` - Trigger help detection analysis on transcripts
+- `GET /api/alerts/{sessionId}` - Get help alerts for instructor dashboard
+  - Query params: `?status=pending|acknowledged|resolved|dismissed`
+- `POST /api/alerts` - Update alert status (acknowledge, resolve, dismiss)
+- `POST /api/quiz/generate` - Generate quiz from instructor transcripts
+  - Body: `{ sessionId, instructorId, questionCount, difficulty }`
+- `GET /api/quiz/{quizId}` - Retrieve a generated quiz
+- `PATCH /api/quiz/{quizId}` - Edit quiz questions before publishing
 
 ## Deployment
 
@@ -188,6 +229,7 @@ This application is optimized for deployment on Vercel with automatic serverless
 | `DAILY_ROOM_6` | Production room URL for Cohort 6 | `https://overcast.daily.co/cohort-6` |
 | `NEXT_PUBLIC_APP_NAME` | Application display name | `Overcast` |
 | `NEXT_PUBLIC_MAX_PARTICIPANTS_PER_ROOM` | Max participants per classroom | `50` |
+| `OPENAI_API_KEY` | OpenAI API key for quiz generation | `sk-...` |
 
 #### Deployment Configuration
 
@@ -247,6 +289,105 @@ The deployment is configured for:
 - Check serverless function execution time in logs
 - Monitor Daily.co connection quality
 - Review Network tab in browser DevTools
+
+## Usage Examples
+
+### Using Transcripts API
+
+```javascript
+// Get all transcripts for a session
+const response = await fetch(`/api/transcripts/classroom-01`);
+const { entries } = await response.json();
+
+// Get only student transcripts
+const studentResponse = await fetch(`/api/transcripts/classroom-01?role=student`);
+
+// Get recent transcripts (since timestamp)
+const recentResponse = await fetch(`/api/transcripts/classroom-01?since=2025-10-07T14:30:00Z`);
+```
+
+### Triggering Help Detection
+
+```javascript
+// Analyze transcripts for help patterns
+const analyzeResponse = await fetch(`/api/transcripts/analyze`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ sessionId: 'classroom-01' })
+});
+
+const { alertsGenerated, alerts } = await analyzeResponse.json();
+console.log(`Generated ${alertsGenerated} new alerts`);
+```
+
+### Managing Alerts
+
+```javascript
+// Get pending alerts for instructor
+const alertsResponse = await fetch(`/api/alerts/classroom-01?status=pending`);
+const { alerts, counts } = await alertsResponse.json();
+
+// Acknowledge an alert
+await fetch(`/api/alerts`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    alertId: 'alert-123',
+    status: 'acknowledged',
+    instructorId: 'instructor-john'
+  })
+});
+```
+
+### Generating Quizzes
+
+```javascript
+// Generate quiz from instructor speech
+const quizResponse = await fetch(`/api/quiz/generate`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    sessionId: 'classroom-01',
+    instructorId: 'instructor-john',
+    questionCount: 5,
+    difficulty: 'mixed'
+  })
+});
+
+const { quiz, generationTime } = await quizResponse.json();
+console.log(`Quiz generated in ${generationTime}s with ${quiz.questions.length} questions`);
+
+// Edit quiz questions
+await fetch(`/api/quiz/${quiz.id}`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    questions: quiz.questions.map(q => ({
+      ...q,
+      question: q.question + ' (Edited)'
+    }))
+  })
+});
+
+// Publish quiz
+await fetch(`/api/quiz/${quiz.id}`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ status: 'published' })
+});
+```
+
+### Performance Targets
+
+The intelligent features meet these performance requirements:
+
+- **Transcript Capture**: <2 seconds from speech to API availability
+- **Help Detection**: <1 second analysis time
+- **Alert Generation**: <5 seconds end-to-end (speech → alert)
+- **Quiz Generation**: <30 seconds for 5 questions
+- **Memory Usage**: <50MB per classroom session
+
+Run `npm test tests/integration/test_performance.test.ts` to validate these targets.
 
 ## Contributing
 

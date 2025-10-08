@@ -8,17 +8,9 @@ const createJestConfig = nextJest({
   dir: './',
 });
 
-// Add any custom config to be passed to Jest
-const customJestConfig = {
+// Shared configuration for all test types
+const baseConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
-  
-  // Test patterns
-  testMatch: [
-    '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
-    '<rootDir>/app/**/*.test.{js,jsx,ts,tsx}',
-    '<rootDir>/lib/**/*.test.{js,jsx,ts,tsx}'
-  ],
   
   // Module path mapping to match tsconfig.json
   moduleNameMapper: {
@@ -35,21 +27,23 @@ const customJestConfig = {
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+};
+
+// Add any custom config to be passed to Jest
+const customJestConfig = {
+  ...baseConfig,
   
-  // Test categories
+  // Test patterns
+  testMatch: [
+    '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
+    '<rootDir>/app/**/*.test.{js,jsx,ts,tsx}',
+    '<rootDir>/lib/**/*.test.{js,jsx,ts,tsx}'
+  ],
+  
+  // Test categories - note: projects need to be created after Next.js transformation is applied
   projects: [
-    {
-      displayName: 'contract',
-      testMatch: ['<rootDir>/tests/contract/**/*.test.{js,jsx,ts,tsx}'],
-      testEnvironment: 'node', // Contract tests run against actual API
-    },
-    // Note: Integration tests are handled by Playwright, not Jest
-    // See playwright.config.ts and run with: npm run test:integration
-    {
-      displayName: 'unit',
-      testMatch: ['<rootDir>/tests/unit/**/*.test.{js,jsx,ts,tsx}'],
-      testEnvironment: 'jest-environment-jsdom',
-    }
+    '<rootDir>/jest.contract.config.js',
+    '<rootDir>/jest.unit.config.js',
   ]
 };
 

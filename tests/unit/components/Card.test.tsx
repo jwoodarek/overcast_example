@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/app/components/ui/Card';
+import Card, { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/app/components/ui/Card';
 
 describe('Card Component', () => {
   test('renders card', () => {
@@ -29,7 +29,7 @@ describe('Card Component', () => {
     render(<Card data-testid="card">Content</Card>);
     const card = screen.getByTestId('card');
     expect(card).toHaveClass('bg-gray-900');
-    expect(card).toHaveClass('border-gray-800');
+    expect(card).toHaveClass('border-gray-700');
   });
 
   test('has rounded corners', () => {

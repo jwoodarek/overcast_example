@@ -150,12 +150,12 @@ export function safeJsonParse<T = unknown>(jsonString: string): T | null {
  * Used for validating Daily.co room URLs
  * 
  * @param url - URL string to validate
- * @returns Whether the URL is valid
+ * @returns Whether the URL is valid (http/https only)
  */
 export function isValidUrl(url: string): boolean {
   try {
-    new URL(url);
-    return true;
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }

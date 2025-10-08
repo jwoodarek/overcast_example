@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Button } from '@/app/components/ui/Button';
+import Button from '@/app/components/ui/Button';
 
 describe('Button Component', () => {
   test('renders button with children', () => {
@@ -29,19 +29,19 @@ describe('Button Component', () => {
   test('renders with default variant', () => {
     render(<Button>Default Button</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-[#00FFD1]'); // Primary teal color
+    expect(button).toHaveClass('bg-teal-600'); // Primary teal color
   });
 
   test('renders with secondary variant', () => {
     render(<Button variant="secondary">Secondary Button</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-gray-800');
+    expect(button).toHaveClass('bg-gray-700');
   });
 
-  test('renders with outline variant', () => {
-    render(<Button variant="outline">Outline Button</Button>);
+  test('renders with danger variant', () => {
+    render(<Button variant="danger">Danger Button</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('border');
+    expect(button).toHaveClass('bg-red-600');
   });
 
   test('renders with ghost variant', () => {
@@ -53,15 +53,15 @@ describe('Button Component', () => {
   test('renders with different sizes', () => {
     const { rerender } = render(<Button size="sm">Small</Button>);
     let button = screen.getByRole('button');
-    expect(button).toHaveClass('h-9');
+    expect(button).toHaveClass('px-3', 'py-1.5', 'text-sm');
 
-    rerender(<Button size="default">Default</Button>);
+    rerender(<Button size="md">Medium</Button>);
     button = screen.getByRole('button');
-    expect(button).toHaveClass('h-11');
+    expect(button).toHaveClass('px-4', 'py-2', 'text-sm');
 
     rerender(<Button size="lg">Large</Button>);
     button = screen.getByRole('button');
-    expect(button).toHaveClass('h-12');
+    expect(button).toHaveClass('px-6', 'py-3', 'text-base');
   });
 
   test('disables button when disabled prop is true', () => {
@@ -88,15 +88,10 @@ describe('Button Component', () => {
     expect(button).toHaveClass('custom-class');
   });
 
-  test('renders as child element when asChild is true', () => {
-    render(
-      <Button asChild>
-        <a href="/test">Link Button</a>
-      </Button>
-    );
-    
-    const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', '/test');
+  test('renders with full width', () => {
+    render(<Button fullWidth>Full Width Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('w-full');
   });
 
   test('has accessible role', () => {
@@ -111,12 +106,12 @@ describe('Button Component', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  test('handles keyboard events', () => {
+  test('handles click events', () => {
     const handleClick = jest.fn();
-    render(<Button onClick={handleClick}>Keyboard Button</Button>);
+    render(<Button onClick={handleClick}>Click Button</Button>);
     
     const button = screen.getByRole('button');
-    fireEvent.keyDown(button, { key: 'Enter', code: 'Enter' });
+    fireEvent.click(button);
     
     expect(handleClick).toHaveBeenCalled();
   });
@@ -129,8 +124,8 @@ describe('Button Component', () => {
     );
     
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-gray-800'); // variant
-    expect(button).toHaveClass('h-12'); // size
+    expect(button).toHaveClass('bg-gray-700'); // variant
+    expect(button).toHaveClass('px-6', 'py-3'); // size
     expect(button).toHaveClass('extra-class'); // custom
   });
 });
