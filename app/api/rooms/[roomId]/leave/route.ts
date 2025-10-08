@@ -31,7 +31,7 @@ interface RouteParams {
 const activeParticipants = new Set<string>();
 
 // Simple in-memory lock for concurrency control
-const leaveLocks = new Map<string, Promise<any>>();
+const leaveLocks = new Map<string, Promise<unknown>>();
 
 /**
  * Validate UUID format

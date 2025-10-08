@@ -132,7 +132,7 @@ export class AlertService {
   getAlertById(alertId: string): HelpAlert | null {
     // Search across all classrooms
     // Note: This is inefficient for large scale, but fine for MVP with 6 classrooms
-    const allClassrooms = alertStore.getSessions?.() || [];
+    const allClassrooms = alertStore.getSessions();
     
     for (const sessionId of allClassrooms) {
       const alerts = alertStore.get(sessionId);

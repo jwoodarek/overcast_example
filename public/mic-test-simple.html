@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Mic Test</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0284c7; }
+        #status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #2d2d2d;
+        }
+        .good { color: #10b981; }
+        .bad { color: #ef4444; }
+        #devices {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #3d3d3d;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Microphone Test</h1>
+    
+    <div id="devices">
+        <h3>Available Audio Input Devices:</h3>
+        <select id="deviceSelect"></select>
+        <button onclick="refreshDevices()">Refresh Devices</button>
+    </div>
+    
+    <div>
+        <button onclick="testMic()">Start Mic Test</button>
+        <button onclick="stopMic()">Stop</button>
+    </div>
+    
+    <div id="status">
+        <p>Click "Start Mic Test" to check your microphone.</p>
+        <div id="volume" style="display:none;">
+            <p>Volume Level: <span id="volumeLevel">0</span>%</p>
+            <div style="background: #444; height: 20px; border-radius: 10px; overflow: hidden;">
+                <div id="volumeBar" style="background: #10b981; height: 100%; width: 0%; transition: width 0.1s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let microphone = null;
+        let analyser = null;
+        let stream = null;
+
+        async function refreshDevices() {
+            try {
+                // Request permission first
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioInputs = devices.filter(device => device.kind === 'audioinput');
+                
+                const select = document.getElementById('deviceSelect');
+                select.innerHTML = '';
+                
+                audioInputs.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `Microphone ${index + 1}`;
+                    select.appendChild(option);
+                });
+                
+                document.getElementById('status').innerHTML = 
+                    `<p class="good">✅ Found ${audioInputs.length} microphone(s)</p>`;
+                
+            } catch (error) {
+                document.getElementById('status').innerHTML = 
+                    `<p class="bad">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testMic() {
+            try {
+                const selectedDevice = document.getElementById('deviceSelect').value;
+                const constraints = selectedDevice 
+                    ? { audio: { deviceId: { exact: selectedDevice } } }
+                    : { audio: true };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                audioContext = new AudioContext();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                
+                microphone.connect(analyser);
+                
+                const statusDiv = document.getElementById('status');
+                const volumeDiv = document.getElementById('volume');
+                
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<p class="good">✅ Microphone is active! Make some noise...</p>';
+                }
+                if (volumeDiv) {
+                    volumeDiv.style.display = 'block';
+                }
+                
+                visualize();
+                
+            } catch (error) {
+                const statusDiv = document.getElementById('status');
+                if (statusDiv) {
+                    statusDiv.innerHTML = 
+                        `<p class="bad">❌ Error: ${error.message}</p>
+                         <p>Make sure you've allowed microphone access.</p>`;
+                }
+            }
+        }
+
+        function visualize() {
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            const volumeLevel = document.getElementById('volumeLevel');
+            const volumeBar = document.getElementById('volumeBar');
+            
+            function draw() {
+                if (!analyser) return;
+                
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                const percent = Math.min(100, (average / 128) * 100);
+                
+                if (volumeLevel) {
+                    volumeLevel.textContent = Math.round(percent);
+                }
+                if (volumeBar) {
+                    volumeBar.style.width = percent + '%';
+                    volumeBar.style.background = average > 10 ? '#10b981' : '#444';
+                }
+                
+                requestAnimationFrame(draw);
+            }
+            
+            draw();
+        }
+
+        function stopMic() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+            microphone = null;
+            analyser = null;
+            stream = null;
+            audioContext = null;
+            
+            const statusDiv = document.getElementById('status');
+            const volumeDiv = document.getElementById('volume');
+            
+            if (statusDiv) {
+                statusDiv.innerHTML = '<p>Microphone stopped.</p>';
+            }
+            if (volumeDiv) {
+                volumeDiv.style.display = 'none';
+            }
+        }
+
+        // Load devices on page load
+        refreshDevices();
+    </script>
+</body>
+</html>
+

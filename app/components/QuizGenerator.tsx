@@ -212,7 +212,7 @@ export default function QuizGenerator({
         <CardContent>
           <p className="text-gray-600 mb-4">
             Generate a quiz from your teaching transcripts. Questions will be created
-            based on the content you've covered in this session.
+            based on the content you&apos;ve covered in this session.
           </p>
 
           {/* Settings */}

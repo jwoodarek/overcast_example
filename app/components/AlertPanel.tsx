@@ -313,7 +313,7 @@ export default function AlertPanel({
 
               {/* Context Snippet */}
               <div className="text-sm text-gray-700 mb-2 italic">
-                "{alert.contextSnippet}"
+                &ldquo;{alert.contextSnippet}&rdquo;
               </div>
 
               {/* Trigger Keywords */}

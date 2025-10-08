@@ -28,12 +28,13 @@ import {
 
 /**
  * Pattern definition for help detection
+ * (Currently using inline patterns in HELP_KEYWORDS constant)
  */
-interface HelpPattern {
-  keywords: string[];
-  urgency: 'low' | 'medium' | 'high';
-  weight: number; // Used for urgency calculation
-}
+// interface HelpPattern {
+//   keywords: string[];
+//   urgency: 'low' | 'medium' | 'high';
+//   weight: number; // Used for urgency calculation
+// }
 
 /**
  * Result of analyzing a transcript for help patterns
@@ -117,7 +118,7 @@ export class HelpDetectionService {
     // Group transcripts by speaker to detect repeated confusion
     const bySpeaker = this.groupBySpeaker(transcripts);
 
-    for (const [speakerId, entries] of bySpeaker.entries()) {
+    for (const entries of bySpeaker.values()) {
       // Skip instructor transcripts (only analyze student speech)
       if (entries[0]?.speakerRole === 'instructor') {
         continue;
@@ -215,7 +216,7 @@ export class HelpDetectionService {
    * - "I give up" is critical, needs immediate attention
    * - Weight influences final urgency calculation
    */
-  private getKeywordWeight(category: string, keyword: string): number {
+  private getKeywordWeight(category: string, _keyword: string): number {
     const weights: Record<string, number> = {
       'direct_help': 3,      // "I need help", "help me"
       'confusion': 2,        // "I don't understand", "confused"

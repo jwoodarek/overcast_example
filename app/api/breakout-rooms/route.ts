@@ -14,7 +14,17 @@ import { NextResponse } from 'next/server';
 import { generateUUID } from '@/lib/utils';
 
 // In-memory store for breakout rooms (production would use database)
-const breakoutRooms = new Map<string, any>();
+interface BreakoutRoom {
+  id: string;
+  parentClassroomId: string;
+  name: string;
+  participants: string[];
+  createdBy: string;
+  createdAt: string; // ISO timestamp
+  isActive: boolean;
+  maxDuration: number;
+}
+const breakoutRooms = new Map<string, BreakoutRoom>();
 
 interface CreateBreakoutRequest {
   instructorSessionId: string;

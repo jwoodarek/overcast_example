@@ -182,7 +182,7 @@ function TranscriptionConsentNotification({
           </p>
           <p className="text-gray-400 text-xs mb-3">
             By accepting, you consent to having your spoken words transcribed. 
-            Transcripts are temporary and session-only. You can deny this by clicking "No Thanks".
+            Transcripts are temporary and session-only. You can deny this by clicking &ldquo;No Thanks&rdquo;.
           </p>
           <div className="flex space-x-2">
             <button
@@ -208,7 +208,7 @@ function TranscriptionConsentNotification({
  * Main classroom content component (inside DailyProvider)
  * Handles Daily.co integration and participant management
  */
-function ClassroomContent({ classroomId, user, onLeave, audioDeviceId, videoDeviceId }: ClassroomContentProps) {
+function ClassroomContent({ classroomId, user, onLeave, audioDeviceId }: ClassroomContentProps) {
   const daily = useDaily();
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
@@ -473,7 +473,7 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId, videoDevi
       daily.off('participant-joined', handleParticipantJoined);
       daily.off('participant-left', handleParticipantLeft);
     };
-  }, [daily, joinRoom]);
+  }, [daily, joinRoom, transcriptionSupported]);
 
   // Handle leaving the classroom
   const handleLeave = useCallback(async () => {
@@ -583,7 +583,6 @@ function ClassroomContent({ classroomId, user, onLeave, audioDeviceId, videoDevi
               <div className="w-96 border-l border-gray-700 bg-gray-900 flex flex-col">
                 <TranscriptMonitor 
                   sessionId={`classroom-${classroomId}`}
-                  refreshInterval={2000}
                 />
               </div>
             )}

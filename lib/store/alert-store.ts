@@ -227,6 +227,20 @@ export class AlertStore {
   }
 
   /**
+   * Get all session IDs that have alerts.
+   * 
+   * WHY useful:
+   * - Search across all classrooms for a specific alert
+   * - Monitoring/debugging active sessions
+   * - Cleanup operations
+   * 
+   * @returns Array of session IDs
+   */
+  getSessions(): string[] {
+    return Array.from(this.alerts.keys());
+  }
+
+  /**
    * Clear all alerts (for testing/development).
    * 
    * WHY separate from clear():

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Recognition Test</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            max-width: 700px; 
+            margin: 30px auto; 
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0284c7; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        #status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #2d2d2d;
+            font-size: 18px;
+        }
+        .good { color: #10b981; font-weight: bold; }
+        .bad { color: #ef4444; font-weight: bold; }
+        .info { color: #3b82f6; }
+        #transcript {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .entry {
+            margin: 10px 0;
+            padding: 12px;
+            background: #3d3d3d;
+            border-radius: 6px;
+            border-left: 4px solid #10b981;
+        }
+        .interim {
+            opacity: 0.6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Speech Recognition Test</h1>
+    <p style="color: #888;">This tests the same API that Overcast uses for transcription.</p>
+    
+    <div style="background: #2d2d2d; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #f59e0b;">
+        <p style="color: #f59e0b; margin: 0 0 8px 0; font-weight: bold;">⚠️ Important: System Microphone</p>
+        <p style="color: #888; margin: 0; font-size: 14px;">
+            The Web Speech API uses your <strong>system default microphone</strong>, not the one from the device test.
+            If transcription isn't working, check your system settings and ensure the correct microphone is set as default.
+            <br><br>
+            <strong>Mac:</strong> System Settings → Sound → Input<br>
+            <strong>Windows:</strong> Settings → System → Sound → Input
+        </p>
+    </div>
+    
+    <div>
+        <button id="startBtn" onclick="startRecognition()">▶️ Start Listening</button>
+        <button id="stopBtn" onclick="stopRecognition()" disabled>⏹️ Stop</button>
+    </div>
+    
+    <div id="status">
+        <p class="info">Click "Start Listening" and then speak into your microphone.</p>
+    </div>
+
+    <!-- Audio Level Indicator -->
+    <div id="audioLevelContainer" style="display: none; margin: 20px 0;">
+        <h3 style="margin-bottom: 10px;">Audio Level:</h3>
+        <div style="background: #2d2d2d; padding: 15px; border-radius: 8px;">
+            <div style="background: #1a1a1a; height: 30px; border-radius: 4px; overflow: hidden;">
+                <div id="audioLevel" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%); transition: width 0.1s;"></div>
+            </div>
+            <p id="audioLevelText" style="margin: 8px 0 0 0; font-size: 14px; color: #888;">Waiting for audio...</p>
+        </div>
+    </div>
+
+    <!-- Recognition Diagnostics -->
+    <div id="diagnosticsPanel" style="display: none; margin: 20px 0; background: #2d2d2d; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+        <h3 style="margin: 0 0 10px 0; color: #3b82f6;">🔍 Speech Recognition Diagnostics</h3>
+        <div style="font-size: 14px; color: #888; line-height: 1.6;">
+            <div><strong>Status:</strong> <span id="diagStatus">Waiting...</span></div>
+            <div><strong>Results Received:</strong> <span id="diagResultCount">0</span></div>
+            <div><strong>Last Result:</strong> <span id="diagLastResult">Never</span></div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #444;">
+                <strong>Common Issues:</strong>
+                <ul style="margin: 5px 0 0 20px; padding: 0;">
+                    <li>Chrome's Speech API requires <strong>internet connection</strong></li>
+                    <li>Speak <strong>clearly and at normal volume</strong> (not too loud)</li>
+                    <li>Wait 1-2 seconds after starting before speaking</li>
+                    <li>Works best in <strong>Chrome browser</strong></li>
+                    <li>Check browser console (F12) for detailed errors</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <h3>Transcript:</h3>
+    <div id="transcript">
+        <p style="color: #888;">Transcripts will appear here...</p>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let animationFrame = null;
+        let resultCount = 0;
+        let lastResultTime = null;
+        let diagnosticsInterval = null;
+
+        function log(message, type = 'info') {
+            const status = document.getElementById('status');
+            const className = type === 'error' ? 'bad' : type === 'success' ? 'good' : 'info';
+            const timestamp = new Date().toLocaleTimeString();
+            status.innerHTML = `<p class="${className}">[${timestamp}] ${message}</p>`;
+            console.log(`[${timestamp}]`, message);
+        }
+
+        function updateDiagnostics() {
+            const diagStatus = document.getElementById('diagStatus');
+            const diagResultCount = document.getElementById('diagResultCount');
+            const diagLastResult = document.getElementById('diagLastResult');
+            
+            if (diagStatus) {
+                if (isListening && recognition) {
+                    diagStatus.textContent = '🟢 Active and listening';
+                    diagStatus.style.color = '#10b981';
+                } else {
+                    diagStatus.textContent = '⚪ Stopped';
+                    diagStatus.style.color = '#888';
+                }
+            }
+            
+            if (diagResultCount) {
+                diagResultCount.textContent = resultCount.toString();
+                diagResultCount.style.color = resultCount > 0 ? '#10b981' : '#ef4444';
+            }
+            
+            if (diagLastResult) {
+                if (lastResultTime) {
+                    const seconds = Math.floor((new Date() - lastResultTime) / 1000);
+                    diagLastResult.textContent = `${seconds}s ago`;
+                    diagLastResult.style.color = '#10b981';
+                } else {
+                    diagLastResult.textContent = 'Never';
+                    diagLastResult.style.color = '#ef4444';
+                }
+            }
+        }
+
+        function addTranscript(text, isFinal) {
+            const transcript = document.getElementById('transcript');
+            const time = new Date().toLocaleTimeString();
+            
+            if (isFinal) {
+                const entry = document.createElement('div');
+                entry.className = 'entry';
+                entry.innerHTML = `
+                    <div style="font-size: 12px; color: #888; margin-bottom: 5px;">${time}</div>
+                    <div style="font-size: 16px;">${text}</div>
+                `;
+                transcript.appendChild(entry);
+                transcript.scrollTop = transcript.scrollHeight;
+            } else {
+                // Update last interim result
+                let interim = document.getElementById('interim');
+                if (!interim) {
+                    interim = document.createElement('div');
+                    interim.id = 'interim';
+                    interim.className = 'entry interim';
+                    transcript.appendChild(interim);
+                }
+                interim.innerHTML = `<div style="font-size: 16px;">${text} ...</div>`;
+                transcript.scrollTop = transcript.scrollHeight;
+            }
+        }
+
+        async function startAudioMonitoring() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser.fftSize = 256;
+                
+                microphone.connect(analyser);
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                function updateAudioLevel() {
+                    if (!analyser) return;
+                    
+                    analyser.getByteFrequencyData(dataArray);
+                    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                    const percent = Math.min(100, (average / 50) * 100);
+                    
+                    document.getElementById('audioLevel').style.width = `${percent}%`;
+                    
+                    if (percent > 5) {
+                        document.getElementById('audioLevelText').textContent = `Audio detected: ${Math.round(percent)}%`;
+                        document.getElementById('audioLevelText').style.color = '#10b981';
+                    } else {
+                        document.getElementById('audioLevelText').textContent = 'No audio detected - speak louder or check microphone';
+                        document.getElementById('audioLevelText').style.color = '#ef4444';
+                    }
+                    
+                    animationFrame = requestAnimationFrame(updateAudioLevel);
+                }
+                
+                updateAudioLevel();
+                document.getElementById('audioLevelContainer').style.display = 'block';
+                
+                console.log('[Audio Monitor] Started successfully');
+            } catch (error) {
+                console.error('[Audio Monitor] Failed to start:', error);
+            }
+        }
+
+        function stopAudioMonitoring() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            if (microphone) {
+                microphone.disconnect();
+                microphone = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') {
+                audioContext.close();
+                audioContext = null;
+            }
+            analyser = null;
+            
+            document.getElementById('audioLevelContainer').style.display = 'none';
+            document.getElementById('audioLevel').style.width = '0%';
+            
+            console.log('[Audio Monitor] Stopped');
+        }
+
+        function startRecognition() {
+            // Check browser support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                log('❌ Speech Recognition not supported! Use Chrome, Edge, or Safari.', 'error');
+                return;
+            }
+
+            log('✅ Starting speech recognition...', 'success');
+            
+            // Show diagnostics panel and start periodic updates
+            document.getElementById('diagnosticsPanel').style.display = 'block';
+            updateDiagnostics();
+            
+            // Update diagnostics every second
+            if (diagnosticsInterval) clearInterval(diagnosticsInterval);
+            diagnosticsInterval = setInterval(updateDiagnostics, 1000);
+            
+            // Start audio level monitoring
+            startAudioMonitoring();
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                resultCount = 0;
+                lastResultTime = null;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                log('🎤 LISTENING - Speak now! (Internet connection required)', 'success');
+                console.log('[Speech Recognition] Started successfully');
+                updateDiagnostics();
+            };
+
+            recognition.onresult = (event) => {
+                resultCount++;
+                lastResultTime = new Date();
+                console.log('[Speech Test] onresult fired! Count:', resultCount, 'Results:', event.results.length);
+                updateDiagnostics();
+                
+                // Clear old interim results
+                const interim = document.getElementById('interim');
+                if (interim) interim.remove();
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    const text = result[0].transcript;
+                    const confidence = result[0].confidence;
+                    const isFinal = result.isFinal;
+                    
+                    console.log(`${isFinal ? 'FINAL' : 'Interim'}: "${text}" (confidence: ${confidence?.toFixed(2) || 'N/A'})`);
+                    
+                    if (text && text.trim().length > 0) {
+                        if (isFinal) {
+                            addTranscript(text, true);
+                            const confidenceText = confidence ? `${(confidence * 100).toFixed(0)}% confidence` : 'confidence N/A';
+                            log(`✅ Got it: "${text}" (${confidenceText})`, 'success');
+                        } else {
+                            addTranscript(text, false);
+                            log(`🎤 Detecting... "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 'info');
+                        }
+                    } else {
+                        console.log('[Speech Test] Empty result, skipping');
+                    }
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Recognition error:', event.error, event.message);
+                
+                if (event.error === 'not-allowed') {
+                    log('❌ Microphone permission DENIED. Click the lock icon in your browser and allow microphone access.', 'error');
+                } else if (event.error === 'no-speech') {
+                    log('⚠️ No speech detected. Try speaking louder or closer to the microphone.', 'info');
+                } else if (event.error === 'audio-capture') {
+                    log('❌ No microphone found or audio capture failed.', 'error');
+                } else if (event.error === 'network') {
+                    log('❌ Network error. Speech recognition requires an internet connection.', 'error');
+                } else {
+                    log(`❌ Error: ${event.error}`, 'error');
+                }
+            };
+
+            recognition.onend = () => {
+                console.log('[Speech Recognition] Ended. Results received:', resultCount, 'Last result:', lastResultTime);
+                
+                // Show warning if no results were received
+                if (resultCount === 0 && isListening) {
+                    log('⚠️ Recognition ended without results. Check: 1) Internet connection 2) Speak clearly 3) Try Chrome browser', 'error');
+                    console.warn('[Speech Recognition] No results received before ending. This often means:');
+                    console.warn('1. No speech was detected (speak louder/closer to mic)');
+                    console.warn('2. Network issue (Chrome sends audio to Google servers)');
+                    console.warn('3. Browser compatibility issue');
+                    console.warn('4. Microphone is muted or not working');
+                }
+                
+                if (isListening) {
+                    // Auto-restart if still supposed to be listening
+                    try {
+                        recognition.start();
+                        console.log('[Speech Recognition] Auto-restarted');
+                    } catch (e) {
+                        console.error('[Speech Recognition] Could not restart:', e.message);
+                        log('❌ Recognition stopped and could not restart. Click Stop then Start again.', 'error');
+                        isListening = false;
+                        document.getElementById('startBtn').disabled = false;
+                        document.getElementById('stopBtn').disabled = true;
+                    }
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                log(`❌ Failed to start: ${error.message}`, 'error');
+            }
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                isListening = false;
+                recognition.stop();
+                recognition = null;
+                
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                log('⏹️ Stopped listening.', 'info');
+            }
+            
+            // Stop diagnostics updates
+            if (diagnosticsInterval) {
+                clearInterval(diagnosticsInterval);
+                diagnosticsInterval = null;
+            }
+            updateDiagnostics();
+            
+            stopAudioMonitoring();
+        }
+
+        // Check support on load
+        window.onload = () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                log('❌ Your browser does not support Speech Recognition. Please use Chrome, Edge, or Safari.', 'error');
+                document.getElementById('startBtn').disabled = true;
+            } else {
+                log('✅ Browser supports Speech Recognition! Click "Start Listening" to begin.', 'success');
+            }
+        };
+    </script>
+</body>
+</html>
+

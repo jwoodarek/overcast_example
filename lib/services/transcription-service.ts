@@ -28,7 +28,7 @@
  * Based on research.md Web Speech API decision (research question #1)
  */
 
-import type { TranscriptEntry } from '../types';
+// TranscriptEntry type is used in comments and documentation
 
 /**
  * Interface for transcript capture providers
@@ -136,7 +136,7 @@ class WebSpeechProvider implements TranscriptionProvider {
           console.log('[Transcription] Trying default microphone...');
           const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           testStream.getTracks().forEach(track => track.stop());
-        } catch (fallbackError) {
+        } catch {
           throw new Error('Failed to access microphone. Please check permissions and ensure no other app is using it.');
         }
       }
@@ -153,17 +153,18 @@ class WebSpeechProvider implements TranscriptionProvider {
 
     // Create speech recognition instance
     // WHY webkitSpeechRecognition: Chrome and Safari use prefixed version
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    this.recognition = new SpeechRecognition();
+    const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionConstructor();
+    this.recognition = recognition;
 
     // Configure recognition settings
-    this.recognition.continuous = true; // Keep listening until explicitly stopped
-    this.recognition.interimResults = true; // Get results as user speaks (for responsive feel)
-    this.recognition.lang = 'en-US'; // Language (could be made configurable)
-    this.recognition.maxAlternatives = 1; // Only need top result
+    recognition.continuous = true; // Keep listening until explicitly stopped
+    recognition.interimResults = true; // Get results as user speaks (for responsive feel)
+    recognition.lang = 'en-US'; // Language (could be made configurable)
+    recognition.maxAlternatives = 1; // Only need top result
 
     // Handle recognition results
-    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       // WHY process results: Store final transcripts, ignore interim ones to avoid duplicates
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -204,7 +205,7 @@ class WebSpeechProvider implements TranscriptionProvider {
     };
 
     // Handle errors
-    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('[Transcription Error]', event.error, event.message);
       
       // WHY specific error handling: Different errors need different user messages
@@ -227,12 +228,12 @@ class WebSpeechProvider implements TranscriptionProvider {
     };
 
     // Handle start of recognition
-    this.recognition.onstart = () => {
+    recognition.onstart = () => {
       console.log('[Transcription] 🎤 Speech recognition is now LISTENING for audio...');
     };
 
     // Handle end of recognition (auto-restart)
-    this.recognition.onend = () => {
+    recognition.onend = () => {
       // WHY auto-restart: continuous mode can sometimes stop, so we restart it
       // Only restart if we still have an active session
       if (this.activeSession && this.recognition) {
@@ -254,7 +255,7 @@ class WebSpeechProvider implements TranscriptionProvider {
 
     // Start recognition
     try {
-      this.recognition.start();
+      recognition.start();
       console.log(`[Transcription] Started capturing for ${speakerName} (${speakerRole}) in session ${sessionId}`);
     } catch (error) {
       console.error('[Transcription] Failed to start:', error);
@@ -410,8 +411,12 @@ export const transcriptionService = new TranscriptionService();
  */
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition: {
+      new(): SpeechRecognition;
+    };
+    webkitSpeechRecognition: {
+      new(): SpeechRecognition;
+    };
   }
 }
 
@@ -424,6 +429,7 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
   onresult: (event: SpeechRecognitionEvent) => void;
   onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onstart: () => void;
   onend: () => void;
 }
 
